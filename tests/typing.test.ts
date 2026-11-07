@@ -15,30 +15,37 @@ describe('typing buffer', () => {
       expect(n).toBeLessThanOrEqual(6);
       expect(a.current).toBe(b.current);
     }
-    expect(a.current).toBe(commands[0].command);
+    expect(a.lines).toEqual([commands[0].command]);
     expect(a.pendingAt).toBeGreaterThanOrEqual(80);
     expect(a.pendingAt).toBeLessThanOrEqual(200);
   });
-  it('delays output, ignores excess keys, then outputs a whole response exactly once', () => {
+  it('delays output without dropping continued input and emits each response once', () => {
     const buffer = new TypingBuffer(createRng());
     buffer.complete(1000);
     const due = buffer.pendingAt!;
-    buffer.press(1001); buffer.complete(1002);
+    const typed = buffer.press(1001);
+    expect(typed).toBeGreaterThanOrEqual(3);
+    expect(buffer.current).toBe(commands[1].command.slice(0, typed));
     expect(buffer.pendingAt).toBe(due);
     buffer.tick(due - 1);
-    expect(buffer.lines).toHaveLength(0);
+    expect(buffer.lines).toEqual([commands[0].command]);
     buffer.tick(due);
     expect(buffer.lines).toEqual([commands[0].command, ...commands[0].output]);
     buffer.tick(due + 1000);
     expect(buffer.index).toBe(1);
-    expect(buffer.current).toBe('');
+    expect(buffer.current).toBe(commands[1].command.slice(0, typed));
   });
   it('cycles commands and caps history through prolonged input; reset cancels pending output', () => {
     const buffer = new TypingBuffer(createRng());
-    for (let i = 0; i < 500; i++) { buffer.complete(i * 300); buffer.tick(i * 300 + 200); }
+    for (let i = 0; i < 500; i++) {
+      buffer.complete(i * 300);
+      buffer.tick(i * 300 + 200);
+    }
     expect(buffer.lines.length).toBeLessThanOrEqual(100);
     expect(buffer.index).toBe(500 % commands.length);
-    buffer.complete(200_000); buffer.reset(); buffer.tick(300_000);
+    buffer.complete(200_000);
+    buffer.reset();
+    buffer.tick(300_000);
     expect(buffer.lines).toHaveLength(0);
     expect(buffer.current).toBe('');
     expect(buffer.pendingAt).toBe(null);
