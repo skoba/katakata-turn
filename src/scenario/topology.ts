@@ -7,7 +7,7 @@ export type TopologyNode = {
   width: number;
   height: number;
   shape: 'cloud' | 'switch' | 'terminal' | 'ap';
-  system: number;
+  system?: number;
   labelSide?: 'left';
 };
 
@@ -42,7 +42,6 @@ export const nodes: readonly TopologyNode[] = [
     width: 240,
     height: 70,
     shape: 'cloud',
-    system: 0,
   },
   {
     id: 'edge',

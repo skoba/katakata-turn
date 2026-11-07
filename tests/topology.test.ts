@@ -43,7 +43,12 @@ describe('topology scene integration', () => {
   it('has valid system mappings, unique nodes and connected failover path', () => {
     const ids = nodes.map((node) => node.id);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const node of nodes) expect(systems[node.system]).toBeDefined();
+    for (const node of nodes)
+      if (node.system !== undefined) expect(systems[node.system]).toBeDefined();
+    expect(
+      nodes.filter((node) => node.system === undefined).map((node) => node.id),
+    ).toEqual(['dr']);
+    expect(nodes.find((node) => node.id === 'cloud')?.system).toBe(0);
     for (const link of links) {
       expect(ids).toContain(link.from);
       expect(ids).toContain(link.to);

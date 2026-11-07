@@ -126,6 +126,10 @@ export function createTopology() {
       previous = scene;
     }
     const phase = topologyPhase(scene, turn);
+    const nodeState = (node: TopologyNode): SystemState =>
+      node.system === undefined
+        ? 'nominal'
+        : systemState(scene, elapsed, node.system);
     root.dataset.shield = String(phase.shield);
     root.dataset.route = phase.failover ? 'dr' : 'primary';
     spawn -= delta;
@@ -162,11 +166,7 @@ export function createTopology() {
     links.forEach((link, i) => {
       const from = byId.get(link.from)!;
       const to = byId.get(link.to)!;
-      const state = systemState(
-        scene,
-        elapsed,
-        link.route === 'primary' ? cloud.system : to.system,
-      );
+      const state = nodeState(link.route === 'primary' ? cloud : to);
       const selectedDR =
         phase.failover && (link.route === 'dr' || link.from === 'vpn');
       const inactive =
@@ -298,7 +298,7 @@ export function createTopology() {
       });
     }
     nodes.forEach((node) => {
-      const state = systemState(scene, elapsed, node.system);
+      const state = nodeState(node);
       context.fillStyle = '#0b1b29';
       context.strokeStyle = colors[state];
       context.lineWidth = 1.3 / scale;
