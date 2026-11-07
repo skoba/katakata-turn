@@ -6,6 +6,8 @@ import { startClock } from './engine/clock';
 import { element } from './panels/dom';
 import { createHeader } from './panels/header';
 import { createTopology } from './panels/topology';
+import { createIntel } from './panels/intel';
+import { Intel } from './engine/intel';
 import { createSystemStatus } from './panels/systemStatus';
 import { createEventLog } from './panels/eventLog';
 import { createTerminal } from './panels/terminal';
@@ -30,6 +32,8 @@ document.title = ui.documentTitle;
 frame.dataset.scene = 'BOOT';
 const header = createHeader();
 const topology = createTopology();
+const intelPanel = createIntel();
+const intel = new Intel();
 const systems = createSystemStatus();
 const log = createEventLog();
 const terminal = createTerminal();
@@ -43,6 +47,7 @@ const dashboard = element('div', 'dashboard');
 const rightColumn = element('div', 'right-column');
 for (const [widget, className] of [
   [topology, 'topology-panel'],
+  [intelPanel, 'intel-panel'],
   [systems, 'status-panel'],
   [log, 'log-panel'],
   [terminal, 'terminal-panel'],
@@ -123,6 +128,7 @@ function typeCommand() {
 
 function changeScene(scene: Scene) {
   assistant.changeScene(scene);
+  intel.changeScene(scene, Date.now());
   banner.clearNotice();
   frame.dataset.scene = scene;
   frame.dataset.tone = scenes[scene].tone;
@@ -220,6 +226,7 @@ if (!new URLSearchParams(location.search).has('nobeforeunload')) {
 
 startClock((delta, time) => {
   now = time;
+  intel.tick(delta);
   scenario.tick(delta);
   assistant.tick(delta, scenario.elapsed, scenario.turnElapsed);
   typing.tick(time);
@@ -247,6 +254,8 @@ startClock((delta, time) => {
   topology.render(scene, elapsed, scenario.turnElapsed, delta);
   assistantPanel.render(assistant, time);
   if (time - lastPaint >= 80) {
+    intelPanel.render(intel);
+    backstage.render(intel.reloads);
     header.render(scene, elapsed, muted, new Date());
     systems.render(scene, elapsed);
     terminal.render(typing, scene === 'COUNTER');

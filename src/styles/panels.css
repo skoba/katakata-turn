@@ -200,24 +200,71 @@ h1 {
   color: #689eaa;
   margin: 0.15rem 0;
 }
-.hex-panel .panel-body {
-  padding: 0.4rem 1rem;
-}
-.packet-footer {
-  font: 0.85rem var(--mono);
-  color: #698495;
-}
-.hex-panel .panel-heading {
+.hex-panel .panel-heading,
+.intel-panel .panel-heading {
   min-height: 2.6rem;
-}
-.hex-panel .eyebrow {
-  font-size: 0.85rem;
+  padding: 0.3rem 0.7rem;
 }
 .hex-panel .panel-body {
+  padding: 0.4rem 0.7rem;
+}
+.hex-panel .eyebrow,
+.hex-panel .hex-data,
+.hex-panel .packet-footer {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.hex-panel .packet-footer {
+  margin-top: 0.4rem;
+}
+.intel-panel .panel-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.3rem 0.8rem;
+  padding: 0.4rem 0.7rem;
+}
+.intel-panel .panel-heading {
+  gap: 0.15rem 0.6rem;
+}
+.intel-disclaimer {
+  margin-left: auto;
+  color: #b6c8ae;
+  font: 1rem var(--mono);
+}
+.intel-feed {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.intel-feed h3 {
+  color: var(--cyan);
+  font: 1rem var(--mono);
+  margin: 0 0 0.2rem;
+}
+.intel-list {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.intel-entry {
+  padding: 0.15rem 0 0.35rem;
+  border-bottom: 1px solid #193340;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+.intel-source {
+  color: #b5d8dd;
+}
+.intel-updated {
+  color: #8aafbb;
+}
+.intel-reloads {
+  grid-column: 1 / 3;
+  font: 1rem var(--mono);
+  color: var(--amber);
 }
 .assistant-panel .panel-heading {
   justify-content: space-between;

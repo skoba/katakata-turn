@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import ts from 'typescript';
+import { advisories } from '../src/scenario/intel';
 
 const root = fileURLToPath(new URL('../src/scenario/', import.meta.url));
+const allowedPublicSources = ['JPCERT/CC', 'IPA', '厚生労働省', 'NISC'];
 const banned = [
   'AWS',
   'Amazon',
@@ -75,7 +78,8 @@ describe('fictional scenario data', () => {
   it('scans every scenario source, including future nested files', () => {
     const sources = files(root);
     expect(sources.length).toBeGreaterThan(0);
-    expect(sources).toContain(join(root, 'assistant.ts'));
+    for (const name of ['assistant.ts', 'intel.ts', 'topology.ts'])
+      expect(sources).toContain(join(root, name));
     for (const file of sources) {
       const source = readFileSync(file, 'utf8');
       for (const ip of source.match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g) ?? []) {
@@ -93,6 +97,38 @@ describe('fictional scenario data', () => {
           `${file}: ${ipv6}`,
         ).toBe(true);
       }
+    }
+  });
+  it('allows public agencies only as advisory source labels', () => {
+    for (const file of files(root)) {
+      const source = ts.createSourceFile(
+        file,
+        readFileSync(file, 'utf8'),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+      function visit(node: ts.Node) {
+        if (
+          ts.isStringLiteral(node) ||
+          ts.isNoSubstitutionTemplateLiteral(node)
+        ) {
+          for (const name of allowedPublicSources) {
+            if (!node.text.includes(name)) continue;
+            expect(file).toBe(join(root, 'intel.ts'));
+            expect(node.text).toBe(name);
+            expect(ts.isPropertyAssignment(node.parent)).toBe(true);
+            if (ts.isPropertyAssignment(node.parent))
+              expect(node.parent.name.getText(source)).toBe('source');
+          }
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(source);
+    }
+    for (const advisory of advisories) {
+      expect(allowedPublicSources).toContain(advisory.source);
+      // General summaries contain no dates, document numbers, URLs or vulnerability IDs.
+      expect(advisory.summary).not.toMatch(/[0-9]|https?:|www\.|CVE|CWE|JVN/i);
     }
   });
   it('rejects live addresses and invalid octets', () => {
