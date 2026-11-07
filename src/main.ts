@@ -1,4 +1,8 @@
-import { ui } from './scenario/messages';
+import { ui, recoveryLog } from './scenario/messages';
+import { systems as systemNames } from './scenario/systems';
+import { scenes, type Scene } from './scenario/scenes';
+import { Scenario } from './engine/scenario';
+import { startClock } from './engine/clock';
 import { element } from './panels/dom';
 import { createHeader } from './panels/header';
 import { createThreatMap } from './panels/threatMap';
@@ -18,7 +22,7 @@ import './styles/panels.css';
 import './styles/effects.css';
 
 const frame = element('main', 'console');
-frame.dataset.scene = 'NORMAL';
+frame.dataset.scene = 'BOOT';
 const header = createHeader();
 const map = createThreatMap();
 const systems = createSystemStatus();
@@ -44,9 +48,50 @@ boot.append(element('div', 'eyebrow', ui.section), element('h2', '', ui.bootTitl
 frame.append(header.root, banner.root, dashboard, footer, banner.overlay, backstage.root, help.root, boot, element('div', 'flash'));
 document.querySelector('#app')!.append(frame);
 const typing = new TypingBuffer(createRng());
-header.render('NORMAL', 0, true, new Date());
-systems.render('NORMAL', 0);
-log.ambient('NORMAL', new Date());
-terminal.render(typing, false);
-complaints.render('NORMAL', 0);
-banner.render('NORMAL', 0, null, 0);
+const scenario = new Scenario();
+let muted = true;
+let now = 0;
+let lastPaint = -Infinity;
+let lastLog = 0;
+let recovered = 0;
+
+function changeScene(scene: Scene) {
+  frame.dataset.scene = scene;
+  frame.dataset.tone = scenes[scene].tone;
+  boot.hidden = scene !== 'BOOT';
+  backstage.root.hidden = help.root.hidden = true;
+  lastLog = 0;
+  recovered = 0;
+  if (scene === 'BOOT') { typing.reset(); log.reset(); }
+  log.ambient(scene, new Date());
+  lastPaint = -Infinity;
+}
+scenario.changed.subscribe(changeScene);
+changeScene('BOOT');
+
+startClock((delta, time) => {
+  now = time;
+  scenario.tick(delta);
+  const scene = scenario.scene;
+  const elapsed = scenario.elapsed;
+  if (scene === 'BOOT') {
+    const length = Math.min(ui.bootLines.join('\n').length, Math.floor(elapsed / 19));
+    bootText.textContent = ui.bootLines.join('\n').slice(0, length);
+    bootReady.hidden = elapsed < 3600;
+  }
+  if (elapsed - lastLog >= (scene === 'INCIDENT' ? 320 : 2100)) {
+    log.ambient(scene, new Date()); lastLog = elapsed;
+  }
+  if (scene === 'RECOVERY') {
+    const count = Math.min(systemNames.length, Math.floor(elapsed / 850));
+    while (recovered < count) log.append(recoveryLog(systemNames[recovered++]), scene, new Date());
+  }
+  if (time - lastPaint >= 80) {
+    header.render(scene, elapsed, muted, new Date());
+    systems.render(scene, elapsed);
+    terminal.render(typing, scene === 'COUNTER');
+    complaints.render(scene, elapsed);
+    banner.render(scene, elapsed, scenario.turnElapsed, time);
+    lastPaint = time;
+  }
+});
