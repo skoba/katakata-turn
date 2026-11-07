@@ -1,2 +1,4 @@
 - Phase 1 の範囲を優先し、音声・動的 HEX/スパークライン・詳細 BACKSTAGE・自動再生・seed クエリ・仕上げ効果は実装せず、B は静的パネル、M はミュート表示、A は保留案内とする。
 - 依存は仕様指定の Vite / TypeScript / singlefile / Vitest / Prettier / d3-geo と型定義、要求された撮影に必要な Playwright の開発依存に限定する。
+- 環境の .git が読み取り専用のため、一時 Git ディレクトリに Conventional Commits を作成して bundle を出力し、元の作業ツリーには実装を残す。
+- npm の既定キャッシュが利用できないため、開発時のインストール検証は --cache /tmp/katakata-npm を指定する（アプリには影響しない）。
