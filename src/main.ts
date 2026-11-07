@@ -1,3 +1,4 @@
+import { Sfx } from './audio/sfx';
 import { ui, recoveryLog } from './scenario/messages';
 import { systems as systemNames } from './scenario/systems';
 import { scenes, type Scene } from './scenario/scenes';
@@ -101,14 +102,19 @@ document.querySelector('#app')!.append(frame);
 const typing = new TypingBuffer(random(0x54595045));
 const scenario = new Scenario();
 const assistant = new Assistant(random(0x48415941));
-let muted = true;
+const sfx = new Sfx();
+assistant.speech.started.subscribe(() => {
+  if (assistant.autonomy && scenario.scene !== 'BOOT') sfx.play('beep');
+});
 let now = 0;
 let lastPaint = -Infinity;
 let lastLog = 0;
 let recovered = 0;
 let lastAutoType = 0;
+let recoveryChimed = false;
 
 scenario.turned.subscribe(() => {
+  sfx.play('turn');
   typing.complete(now);
   backstage.root.hidden = help.root.hidden = true;
   frame.classList.add('is-turn-start');
@@ -118,18 +124,24 @@ function performEnter() {
   const result = scenario.enter();
   if (result === 'ignored') return;
   if (result === 'accepted') typing.complete(now);
-  if (result === 'accepted') banner.notice(ui.accepted, now);
+  if (result === 'accepted') {
+    sfx.play('beep');
+    banner.notice(ui.accepted, now);
+  }
   lastPaint = -Infinity;
 }
 
 function typeCommand() {
   if (scenario.busy) return;
   typing.press(now);
+  sfx.play('key');
   assistant.commandInput();
   lastPaint = -Infinity;
 }
 
 function changeScene(scene: Scene) {
+  if (scene === 'BOOT') sfx.reset();
+  if (scene === 'DETECT' || scene === 'INCIDENT') sfx.play('warning');
   assistant.changeScene(scene);
   intel.changeScene(scene, Date.now());
   banner.clearNotice();
@@ -139,6 +151,7 @@ function changeScene(scene: Scene) {
   backstage.root.hidden = help.root.hidden = true;
   lastLog = 0;
   recovered = 0;
+  recoveryChimed = false;
   complaintModel.update(scene, 0);
   if (scene === 'BOOT') {
     typing.reset();
@@ -150,7 +163,11 @@ function changeScene(scene: Scene) {
 scenario.changed.subscribe(changeScene);
 changeScene('BOOT');
 
+document.addEventListener('visibilitychange', () =>
+  sfx.setPaused(document.hidden),
+);
 document.addEventListener('keydown', (event) => {
+  void sfx.unlock();
   const binding = mapKey(event, scenario.scene);
   if (binding.prevent || scenario.busy) event.preventDefault();
   const action = binding.action;
@@ -202,7 +219,7 @@ document.addEventListener('keydown', (event) => {
       backstage.root.hidden = help.root.hidden = true;
       break;
     case 'mute':
-      muted = !muted;
+      sfx.setMuted(!sfx.muted);
       break;
     case 'auto':
       scenario.toggleAutoplay();
@@ -262,6 +279,10 @@ startClock((delta, time) => {
     lastLog = elapsed;
   }
   if (scene === 'RECOVERY') {
+    if (elapsed >= 8500 && !recoveryChimed) {
+      recoveryChimed = true;
+      sfx.play('chime');
+    }
     const count = Math.min(systemNames.length, Math.floor(elapsed / 850));
     while (recovered < count)
       log.append(recoveryLog(systemNames[recovered++]), scene, new Date());
@@ -271,7 +292,7 @@ startClock((delta, time) => {
   if (time - lastPaint >= 80) {
     intelPanel.render(intel);
     backstage.render(intel.reloads, complaintModel.handled);
-    header.render(scene, elapsed, muted, new Date(), scenario.autoplay);
+    header.render(scene, elapsed, sfx.muted, new Date(), scenario.autoplay);
     systems.render(scene, elapsed);
     terminal.render(typing, scene === 'COUNTER');
     complaints.render(scene, complaintModel);

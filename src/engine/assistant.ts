@@ -1,3 +1,4 @@
+import { Events } from './events';
 import type { Random } from './rng';
 import { STAGE_DURATION, STAGE_START, type Scene } from '../scenario/scenes';
 import {
@@ -19,6 +20,7 @@ export type Speech = Readonly<{
 
 /** Bounded FIFO, measured in Unicode code points; no DOM or wall clock. */
 export class SpeechQueue {
+  readonly started = new Events<string>();
   private history: Speech[] = [];
   private pending: string[] = [];
   private characters: string[] = [];
@@ -66,6 +68,7 @@ export class SpeechQueue {
     this.active = { id: ++this.sequence, text, visible: '', complete: false };
     this.history.push(this.active);
     if (this.history.length > SPEECH_LIMIT) this.history.shift();
+    this.started.emit(text);
   }
 
   tick(delta: number): void {

@@ -20,7 +20,7 @@ export const ui = {
   alert: 'ALERT LEVEL',
   clock: 'LOCAL TIME',
   mute: 'MUTED',
-  unmute: 'SOUND ON / Phase 1 音声なし',
+  unmute: 'SOUND ON',
   helpHint: 'H / ? 操作一覧',
   nextHint: 'PageDown → 次のシーン',
   sceneLabel: 'SCENARIO',
