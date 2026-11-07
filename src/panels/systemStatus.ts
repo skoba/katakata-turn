@@ -1,6 +1,7 @@
 import { panel, element } from './dom';
 import { ui } from '../scenario/messages';
 import { systems, statuses, responseTime } from '../scenario/systems';
+import { systemState } from '../engine/systems';
 import type { Scene } from '../scenario/scenes';
 
 export function createSystemStatus() {
@@ -17,13 +18,7 @@ export function createSystemStatus() {
     root,
     render(scene: Scene, elapsed: number) {
       rows.forEach(({ row, status, rtt }, i) => {
-        let state: keyof typeof statuses = 'nominal';
-        if (scene === 'DETECT' && i === 0) state = 'degraded';
-        if (scene === 'INCIDENT' || scene === 'COUNTER')
-          state =
-            i === 0 ? 'down' : [1, 4, 8].includes(i) ? 'degraded' : 'nominal';
-        if (scene === 'RECOVERY')
-          state = elapsed >= (i + 1) * 850 ? 'nominal' : 'recovering';
+        const state = systemState(scene, elapsed, i);
         row.dataset.status = state;
         status.textContent = statuses[state];
         rtt.textContent = responseTime(
