@@ -32,3 +32,10 @@ Claude Code（プランナー / レビュアー / 検証者）が Codex CLI（�
 |---|---|---|---|---|
 | #1 初回 | 12:41 | 12:51 | 10 分 | tasks/phase1b-assistant.md。GIT_DIR/GIT_WORK_TREE で影リポジトリに直接コミット（3 コミット）。レビュー ❌ 0 件、修正往復 0 回 |
 
+
+## Phase 1c（世界地図 → NETWORK TOPOLOGY、THREAT INTEL、公的機関名の許可）
+
+| 投入 | 開始 | 終了 | 所要 | 備考 |
+|---|---|---|---|---|
+| #1 初回 | 13:06 | 13:18 | 12 分 | tasks/phase1c-topology.md。5 コミット。レビューで ❌ 2 件（DR ノードの状態共有、EVENT LOG 上端の部分行） |
+| #2 修正 | 13:21 | 13:24 | 3 分 | tasks/phase1c-fix1.md。3 コミット。❌ 0 件 |
