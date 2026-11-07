@@ -24,6 +24,7 @@ const colors: Record<SystemState, string> = {
 };
 const byId = new Map(nodes.map((node) => [node.id, node]));
 const edge = byId.get('edge')!;
+const cloud = byId.get('cloud')!;
 const lengths = attackPath
   .slice(1)
   .map((point, i) =>
@@ -161,7 +162,11 @@ export function createTopology() {
     links.forEach((link, i) => {
       const from = byId.get(link.from)!;
       const to = byId.get(link.to)!;
-      const state = systemState(scene, elapsed, to.system);
+      const state = systemState(
+        scene,
+        elapsed,
+        link.route === 'primary' ? cloud.system : to.system,
+      );
       const selectedDR =
         phase.failover && (link.route === 'dr' || link.from === 'vpn');
       const inactive =
@@ -173,7 +178,9 @@ export function createTopology() {
         : inactive
           ? '#24404a'
           : state === 'nominal'
-            ? '#38f2ff40'
+            ? scene === 'RECOVERY'
+              ? colors.nominal
+              : '#38f2ff40'
             : colors[state];
       context.lineWidth = (selectedDR ? 2.5 : 1) / scale;
       context.setLineDash(inactive ? [5, 6] : []);
