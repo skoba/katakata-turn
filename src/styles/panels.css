@@ -137,17 +137,22 @@ h1 {
 .event-list {
   overflow-y: auto;
   scrollbar-width: none;
+  padding: 0.25rem 0.7rem;
+}
+.log-panel .panel-heading {
+  min-height: 2.6rem;
+  padding: 0.3rem 0.7rem;
 }
 .event-list.log-overflow {
-  mask-image: linear-gradient(to bottom, transparent, #000 3rem);
+  mask-image: linear-gradient(to bottom, transparent, #000 0.8rem);
 }
 .log-row {
   display: grid;
   grid-template-columns: 7.1rem 3rem 1fr;
-  gap: 0.25rem 0.4rem;
+  gap: 0.1rem 0.4rem;
   border-bottom: 1px solid #142531;
-  padding: 0.55rem 0;
-  font: 1rem/1.4 var(--mono);
+  padding: 0.05rem 0;
+  font: 1rem/1.2 var(--mono);
 }
 .log-time {
   color: #6c899e;
@@ -226,7 +231,7 @@ h1 {
 .hex-panel .eyebrow,
 .hex-panel .hex-data,
 .hex-panel .packet-footer {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
