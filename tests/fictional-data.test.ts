@@ -75,6 +75,7 @@ describe('fictional scenario data', () => {
   it('scans every scenario source, including future nested files', () => {
     const sources = files(root);
     expect(sources.length).toBeGreaterThan(0);
+    expect(sources).toContain(join(root, 'assistant.ts'));
     for (const file of sources) {
       const source = readFileSync(file, 'utf8');
       for (const ip of source.match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g) ?? []) {
