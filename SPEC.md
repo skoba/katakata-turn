@@ -48,7 +48,7 @@
 - 暗背景にシアン/グリーン系の発光文字、警告は琥珀、危機は赤。走査線・グリッド・微グロー・ノイズ等の「それっぽい」CSS 効果。
 - 点滅・フラッシュは 3 Hz 未満（光過敏対策）。全画面フラッシュは Enter 演出の 1 回のみ。
 - 文字サイズ: パネル見出し 24px 以上、本文 18px 以上、重要数値 48px 以上（1080p 基準、clamp() で可変）。
-- 英語大文字の等幅見出し（THREAT MAP, SYSTEM STATUS）＋ 日本語の中身、という混在がドラマ感の肝。
+- 英語大文字の等幅見出し（NETWORK TOPOLOGY, SYSTEM STATUS）＋ 日本語の中身、という混在がドラマ感の肝。
 - 右下に常時小さく `DEMO — ALL DATA FICTIONAL / 架空データ` を表示。
 
 デザイントークン（`src/styles/tokens.css`）:
@@ -64,7 +64,7 @@
 CSS Grid で以下を配置する（番号は優先度。狭い画面では 6・7 を縮小）。
 
 1. **HEADER**（上端帯）: タイトル `HOSPITAL CYBER DEFENSE CONSOLE`、`架空記念病院 情報システム部`、現在時刻（実時刻）、`ALERT LEVEL` 5→1（5 が平常）、現在シーン名、ミュート状態。
-2. **THREAT MAP**（左上・最大面積）: 世界地図（等距円筒）上を攻撃の弧が日本へ飛ぶ。ターゲットは `CLOUD-DC-EAST`（東日本付近）と `DR-SITE-WEST`（西日本付近）の 2 点。防御後は弧が日本周辺の「シールド環」で遮断され火花が散る。
+2. **NETWORK TOPOLOGY**（左上・最大面積）: 世界地図は使わない。クラウドから院内までのネットワーク構成図を Canvas で描く（§4.8）。左から `CLOUD-DC-EAST`（電子カルテ・DB）と `DR-SITE-WEST`、`INTERNET EDGE`（FW / IDS）、`閉域網 / VPN GW`、`院内コア SW`、その先に病棟・外来・手術室・検査・薬剤・医事の各セグメント（フロア SW、無線 AP、電子カルテ端末、ナースステーション、PACS ビューア、プリンタ等）。リンク上をパケット（点）が流れ、攻撃は `INTERNET EDGE` から赤い粒子としてクラウド接続リンクへ押し寄せる。防御後は境界の「シールド」で遮断されて火花が散り、経路が `DR-SITE-WEST` 側へ切り替わる。
 3. **SYSTEM STATUS**（右上）: 院内システム一覧。各行 = 名称 / 状態ランプ / 応答時間 ms / ミニスパークライン。
    - 対象: 電子カルテ（クラウド）、PACS、検査システム、薬剤部門、オーダリング、看護支援、医事会計、院内 LAN、閉域網/VPN、地域医療連携 NW
    - 状態: `NOMINAL` / `DEGRADED` / `DOWN` / `RECOVERING`
@@ -86,6 +86,7 @@ CSS Grid で以下を配置する（番号は優先度。狭い画面では 6・
    文言は `src/scenario/backstage.ts` に置き、簡単に差し替えられるようにする。
 9. **BANNER**（上中央オーバーレイ）: `WARNING` / `CRITICAL` / `COUNTERMEASURE DEPLOYED` / `ALL SYSTEMS NOMINAL` などの大型表示。
 10. **HELP**（H or ? でトグル）: キー操作一覧。
+12. **THREAT INTEL / 外部情報**（§4.7）: 公的機関の注意喚起とクラウド基盤のステータスページ風フィード。
 11. **AI ASSISTANT**（右中、SYSTEM STATUS と COMPLAINT QUEUE の間）: 自律型 AI アシスタント「ハヤオ」の発話パネル（§4.6）。
 
 ### 4.3 シーン（状態機械）
@@ -99,11 +100,11 @@ BOOT → NORMAL → DETECT → INCIDENT → COUNTER → RECOVERY → END
 | シーン | ALERT | 演出・状態 |
 |---|---|---|
 | **BOOT** | — | 起動ログがタイプ表示される（3〜4 秒、任意キーでスキップ）。例: `> loading threat intelligence ... OK` / `> mounting /dev/karte ... OK` / `> calibrating complaint queue ... OK` / `SYSTEM READY. PRESS ANY KEY.` |
-| **NORMAL** 平常監視 | 5 | 全システム NOMINAL。ログは定常運用（`定期バックアップ完了`, `VPN トンネル維持`, `オーダ送信 1,204 件/分`）。地図は薄い通常トラフィック線のみ。苦情 0 件。 |
-| **DETECT** 異常検知 | 4→3 | 琥珀バナー `WARNING: 異常検知`。クラウド接続 RTT 45ms → 380ms、電子カルテ DEGRADED。地図に最初の攻撃弧。`不正アクセス試行 17/min` カウンタ出現。苦情 `医師から内線 ×1`。 |
-| **INCIDENT** 障害進行 | 2→1 | 赤バナー `CRITICAL: 電子カルテ 応答なし`。電子カルテ DOWN、PACS・オーダリング DEGRADED。弧が多数、HEX が加速、ログに `FIREWALL DROP 203.0.113.x` 連打。苦情が急増（`患者さんから ×12`, `院長から ×1` を赤で）。ここで演者が「カタカタカタ…」と話す。 |
+| **NORMAL** 平常監視 | 5 | 全システム NOMINAL。ログは定常運用（`定期バックアップ完了`, `VPN トンネル維持`, `オーダ送信 1,204 件/分`）。トポロジは通常トラフィックの粒子が静かに流れるだけ。苦情 0 件。 |
+| **DETECT** 異常検知 | 4→3 | 琥珀バナー `WARNING: 異常検知`。クラウド接続 RTT 45ms → 380ms、電子カルテ DEGRADED。`INTERNET EDGE` に最初の攻撃フロー、クラウド接続リンクが琥珀に。`不正アクセス試行 17/min` カウンタ出現。苦情 `医師から内線 ×1`。 |
+| **INCIDENT** 障害進行 | 2→1 | 赤バナー `CRITICAL: 電子カルテ 応答なし`。電子カルテ DOWN、PACS・オーダリング DEGRADED。攻撃フローが多数・クラウド接続リンクが赤、HEX が加速、ログに `FIREWALL DROP 203.0.113.x` 連打。苦情が急増（`患者さんから ×12`, `院長から ×1` を赤で）。ここで演者が「カタカタカタ…」と話す。 |
 | **COUNTER** 対処 | 1 | 演者がキーを乱打 → TERMINAL にコマンドが流れる。Enter で「ターン！」（§4.4）。完了後 RECOVERY へ自動遷移。 |
-| **RECOVERY** 復旧 | 1→5 | システムが RECOVERING→NOMINAL に 1 つずつ戻り、その都度ログ。弧がフェードアウト。苦情が `対応済み` に流れて 0 へ。緑バナー `ALL SYSTEMS NOMINAL / 復旧完了`。 |
+| **RECOVERY** 復旧 | 1→5 | システムが RECOVERING→NOMINAL に 1 つずつ戻り、その都度ログ。攻撃フローがフェードアウトし、リンクが順に緑へ。苦情が `対応済み` に流れて 0 へ。緑バナー `ALL SYSTEMS NOMINAL / 復旧完了`。 |
 | **END** | 5 | 静かな状態。B で BACKSTAGE を出してオチにする（自動では出さない）。 |
 
 ### 4.4 「カタカタ…ターン！」仕様
@@ -118,7 +119,7 @@ BOOT → NORMAL → DETECT → INCIDENT → COUNTER → RECOVERY → END
   $ karte-ctl health --deep
   ```
 - **Enter**:
-  - **COUNTER シーン**: 本番演出。現在行を即完成 → 画面 1 回フラッシュ＋シェイク（300 ms）→ 巨大バナー `COUNTERMEASURE DEPLOYED` → プログレスバー 3 本を順に（`ISOLATE SEGMENT` / `FAILOVER TO DR SITE` / `PURGE SESSIONS`、各 1.5〜2.5 秒）→ 地図の弧がシールド環で遮断・火花 → `ACCESS DENIED` の斜めスタンプ → 効果音 → RECOVERY へ。全体 7〜9 秒。
+  - **COUNTER シーン**: 本番演出。現在行を即完成 → 画面 1 回フラッシュ＋シェイク（300 ms）→ 巨大バナー `COUNTERMEASURE DEPLOYED` → プログレスバー 3 本を順に（`ISOLATE SEGMENT` / `FAILOVER TO DR SITE` / `PURGE SESSIONS`、各 1.5〜2.5 秒）→ トポロジ上で攻撃フローが境界シールドに遮断・火花、経路が `DR-SITE-WEST` へ切替 → `ACCESS DENIED` の斜めスタンプ → 効果音 → RECOVERY へ。全体 7〜9 秒。
   - **他シーン**: 小演出のみ（バナー `COMMAND ACCEPTED`、短いビープ）。
 - 連打・演出中の入力で壊れない（演出中は入力を無視、終了後に受け付け）。
 
@@ -182,12 +183,28 @@ AI ASSISTANT パネルを置く（720p では COMPLAINT QUEUE と縦に分け合
 - [ ] `T` で任意のタイミングに発話できる。AUTONOMY OFF で沈黙する
 - [ ] 発話文言が tests/fictional-data.test.ts の検査対象に含まれる
 
+### 4.7 THREAT INTEL / 外部情報フィード
+
+**位置づけ**: 障害中に病院側が見ているのは、公的機関の注意喚起とクラウド基盤のステータスページだけ、という自虐を可視化する。EVENT LOG の一部として流すのではなく、独立した小パネル（左下または HEX の帯と同居）に 2 本のフィードを表示する。
+
+- **ADVISORY（注意喚起）**: 出典ラベルには実在の公的機関名を使ってよい（`JPCERT/CC`, `IPA`, `厚生労働省`, `NISC` など）。ただし本文は架空の要約で、「医療機関を標的とした不正アクセスの増加について」「閉域網経由の侵入試行に関する注意喚起」のような一般的な表現に限り、実在の文書番号・日付・URL・製品名・脆弱性識別子は書かない。パネル内に小さく `要約は架空 / FICTIONAL SUMMARY` を常時表示する。
+- **CLOUD STATUS（ステータスページ風）**: クラウド基盤は架空名（`クラウド基盤 A`, `クラウド基盤 B`）。各リージョン行に `正常` / `調査中` / `復旧作業中` / `復旧` と最終更新時刻。INCIDENT では `リージョン東: ストレージ障害 調査中` のまま「最終更新」だけが進み、RECOVERY で `復旧` に変わる。`ステータスページをリロード ×N` カウンタを置き、INCIDENT 中に増え続ける（BACKSTAGE の件数と一致させる）。
+- 文言は `src/scenario/intel.ts` に集約。シーン連動で新着が上に流れ、各フィードは最大 30 件で破棄。
+- tests/fictional-data.test.ts は、公的機関名の許可リスト（上記）を例外とし、クラウドベンダー名・国名の禁止は維持する。
+
+### 4.8 NETWORK TOPOLOGY の描画仕様
+
+- レイアウトは固定座標（`src/scenario/topology.ts` にノードとリンクの配列）。左 1/3 がクラウド側（`CLOUD-DC-EAST`: 電子カルテ AP / DB、`DR-SITE-WEST`: 待機系）、中央が境界（`INTERNET EDGE` FW / IDS、`閉域網 / VPN GW`、`院内コア SW`）、右 2/3 が院内（`病棟 A` `病棟 B` `外来` `手術室` `検査` `薬剤` `医事` の各セグメントにフロア SW・無線 AP・端末アイコン）。端末は矩形、SW は横長、クラウドは角丸、AP は扇形など単純な幾何学図形で描き、ロゴ・製品名は出さない。
+- ノードはランプ色で状態を示し、SYSTEM STATUS と同じ状態（NOMINAL / DEGRADED / DOWN / RECOVERING）を共有する。リンクは通常 `--line` 色、劣化で琥珀、断で赤、復旧で緑。
+- 通常トラフィックはリンク上を流れる小さな粒子。攻撃は `INTERNET EDGE` 外側（画面左端の `UNKNOWN` / `BOTNET-NODE-xx` ラベル）から赤い粒子が押し寄せる。シールドは境界ノードを囲む環で、遮断された粒子が火花になる。フェイルオーバーで `院内コア SW` → `DR-SITE-WEST` の経路が点灯する。
+- 1280×720 でもラベルが重ならないこと（ラベルは 13px 以上、clamp で可変）。粒子・火花の配列は上限付き。
+- 世界地図関連（`scripts/gen-map.mjs`, `src/assets/world.ts`, `src/scenario/geography.ts`, `d3-geo`）は削除する。
+
 ## 5. アーキテクチャ
 
 ```
 katakata-turn/
   AGENTS.md  SPEC.md  NOTES.md  README.md  LICENSE  package.json  vite.config.ts  index.html
-  scripts/gen-map.mjs            # Natural Earth → src/assets/world.ts 生成（§6）
   src/
     main.ts                      # 起動・ループ・パネル組立
     engine/scenario.ts           # 状態機械（純粋ロジック、DOM 非依存）
@@ -197,9 +214,8 @@ katakata-turn/
     input/keymap.ts              # キー → アクション
     input/typing.ts              # hackertyper バッファ（純粋ロジック）
     audio/sfx.ts                 # Web Audio 効果音（key click / beep / turn / chime）
-    panels/{header,threatMap,systemStatus,eventLog,terminal,hexdump,complaints,backstage,banner,help,assistant}.ts
-    scenario/{scenes,systems,messages,commands,complaints,backstage,assistant}.ts   # 文言・データ（ここだけ触れば演出内容を変えられる）
-    assets/world.ts              # 地図パスデータ
+    panels/{header,topology,systemStatus,eventLog,terminal,hexdump,complaints,backstage,banner,help,assistant,intel}.ts
+    scenario/{scenes,systems,messages,commands,complaints,backstage,assistant,topology,intel}.ts   # 文言・データ（ここだけ触れば演出内容を変えられる）
     styles/{tokens,layout,effects,panels}.css
   tests/                         # vitest
   e2e/                           # playwright（optional）
@@ -207,18 +223,18 @@ katakata-turn/
 ```
 
 - ロジックと描画の分離: `engine/` と `input/` は DOM に触らず、`panels/` が購読して描画する。これによりシナリオと入力バッファを vitest で検証できる。
-- 描画は Canvas（地図・スパークライン・HEX）と DOM（ログ・ステータス・バナー）の併用。1 本の requestAnimationFrame ループで統一。
+- 描画は Canvas（トポロジ・スパークライン・HEX）と DOM（ログ・ステータス・バナー）の併用。1 本の requestAnimationFrame ループで統一。
 - 乱数は全て `engine/rng.ts` 経由。`?seed=123` クエリで固定可能。
-- パフォーマンス: 10 分放置（自動再生）でメモリが増え続けないこと。ログ・HEX・弧の配列は上限付き。
+- パフォーマンス: 10 分放置（自動再生）でメモリが増え続けないこと。ログ・HEX・粒子の配列は上限付き。
 
 ## 6. データと安全ルール（必須）
 
 - IPv4 は RFC 5737 の文書用アドレスのみ: `192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`。IPv6 は `2001:db8::/32` のみ。
-- 実在の国名・都市名・組織名・製品名（クラウドベンダー名含む）・人名を出さない。攻撃元ラベルは `UNKNOWN`, `BOTNET-NODE-xx`, `TOR-EXIT-xx`, `RELAY-xx`。弧の始点は海上を含む架空座標リストから選ぶ。
+- 実在の国名・都市名・企業名・製品名（クラウドベンダー名含む）・人名を出さない。例外として、§4.7 の注意喚起の**出典ラベル**に限り公的機関名（`JPCERT/CC`, `IPA`, `厚生労働省`, `NISC`）を使ってよい。本文は架空の要約とし、実在の文書番号・日付・URL・脆弱性識別子は書かない。攻撃元ラベルは `UNKNOWN`, `BOTNET-NODE-xx`, `TOR-EXIT-xx`, `RELAY-xx`。
 - 病院名は `架空記念病院`。患者情報・患者 ID・氏名・生年月日に見えるものは一切出さない。
 - 実在のマルウェア名・攻撃手法の具体的手順・エクスプロイトコードを出さない。防御側の架空 CLI のみ。
 - `tests/fictional-data.test.ts` で `src/scenario/**` の全文字列を走査し、文書用レンジ外の IPv4 パターン、および禁止語リスト（主要クラウドベンダー名・主要国名）が含まれないことを自動検査する。
-- 地図: Natural Earth 1:110m（パブリックドメイン）の国境なし陸地データを `scripts/gen-map.mjs`（`d3-geo` を devDependency）で equirectangular に投影し、`src/assets/world.ts` にパス文字列として生成物をコミットする（ビルド時のネットワーク不要）。開発環境でダウンロードできない場合は、大陸を粗い多角形で手描きしたフォールバックを同じ形式で作り、NOTES.md に記録する。地図に国境線・国名は描かない。
+- 地図は使わない（§4.8）。ネットワーク構成図のノード名は架空の部署・セグメント名のみ。
 
 ## 7. 受け入れ基準（全フェーズ共通のチェックリスト）
 
@@ -242,7 +258,7 @@ katakata-turn/
 2. `engine/scenario.ts` + `input/typing.ts` + テスト
 3. レイアウトと全パネルの静的表示（トークン・グリッド・1080p/720p）
 4. シーン別の演出: HEADER / SYSTEM STATUS / EVENT LOG / BANNER / COMPLAINT QUEUE
-5. THREAT MAP（地図生成スクリプト、弧アニメーション、シールド遮断）
+5. NETWORK TOPOLOGY（構成図、粒子アニメーション、シールド遮断、フェイルオーバー経路）と THREAT INTEL フィード（§4.7）
 6. TERMINAL（hackertyper）と Enter の「ターン！」演出一式
 7. キー操作一式（クリッカー対応、F5 抑止、beforeunload）
 8. 単一 HTML ビルド、README 初版、スクリーンショット
@@ -250,7 +266,7 @@ katakata-turn/
 ### Phase 2 — 演出強化
 
 1. Web Audio 効果音（キークリック / 警告ビープ / ターン / 復旧チャイム）、ミュート、初回ジェスチャ後に AudioContext を resume
-2. HEX ダンプの医療情報ネタ、スパークライン
+2. HEX ダンプの医療情報ネタ、スパークライン、THREAT INTEL のリロードカウンタと BACKSTAGE の連動
 3. BACKSTAGE オーバーレイ
 4. 自動再生モード、`?seed=` 固定
 5. 走査線・グロー・ノイズなどの仕上げ効果（3 Hz 未満を守る）
