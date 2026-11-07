@@ -16,6 +16,8 @@ import { createBanner } from './panels/banner';
 import { createHelp } from './panels/help';
 import { TypingBuffer } from './input/typing';
 import { createRng } from './engine/rng';
+import { mapKey } from './input/keymap';
+import { sceneOrder } from './scenario/scenes';
 import './styles/tokens.css';
 import './styles/layout.css';
 import './styles/panels.css';
@@ -85,6 +87,40 @@ function changeScene(scene: Scene) {
 }
 scenario.changed.subscribe(changeScene);
 changeScene('BOOT');
+
+document.addEventListener('keydown', (event) => {
+  const binding = mapKey(event, scenario.scene);
+  if (binding.prevent || scenario.busy) event.preventDefault();
+  const action = binding.action;
+  if (action === 'blocked' || scenario.busy || !action || (event.repeat && action !== 'type')) return;
+  if (scenario.anyKey()) return;
+  if (action.startsWith('jump-')) { scenario.go(sceneOrder[Number(action.slice(5))]); return; }
+  switch (action) {
+    case 'next': scenario.move(1); break;
+    case 'previous': scenario.move(-1); break;
+    case 'enter': performEnter(); break;
+    case 'type': typeCommand(); break;
+    case 'backstage': backstage.root.hidden = !backstage.root.hidden; help.root.hidden = true; break;
+    case 'help': help.root.hidden = !help.root.hidden; backstage.root.hidden = true; break;
+    case 'close': backstage.root.hidden = help.root.hidden = true; break;
+    case 'mute': muted = !muted; break;
+    case 'auto': banner.notice(ui.autoReserved, now, 4000); break;
+    case 'reset': scenario.reset(); break;
+    case 'fullscreen': {
+      const operation = document.fullscreenElement ? document.exitFullscreen() : frame.requestFullscreen();
+      operation.catch(() => banner.notice(ui.fullscreenFailed, now, 5000));
+      break;
+    }
+  }
+  lastPaint = -Infinity;
+});
+
+if (!new URLSearchParams(location.search).has('nobeforeunload')) {
+  window.addEventListener('beforeunload', (event) => {
+    event.preventDefault();
+    event.returnValue = '';
+  });
+}
 
 startClock((delta, time) => {
   now = time;
