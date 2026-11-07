@@ -5,23 +5,70 @@ import { join } from 'node:path';
 
 const root = fileURLToPath(new URL('../src/scenario/', import.meta.url));
 const banned = [
-  'AWS', 'Amazon', 'Azure', 'Microsoft', 'Google', 'GCP', 'Oracle',
-  'Alibaba', 'IBM', 'Tencent', 'Cloudflare', 'Salesforce',
-  '日本', '中国', '米国', 'アメリカ', 'ロシア', '北朝鮮', '韓国',
-  '英国', 'イギリス', 'フランス', 'ドイツ', 'インド', '台湾',
-  'Japan', 'China', 'Russia', 'Korea', 'USA', 'United States',
+  'AWS',
+  'Amazon',
+  'Azure',
+  'Microsoft',
+  'Google',
+  'GCP',
+  'Oracle',
+  'Alibaba',
+  'IBM',
+  'Tencent',
+  'Cloudflare',
+  'Salesforce',
+  '日本',
+  '中国',
+  '米国',
+  'アメリカ',
+  'ロシア',
+  '北朝鮮',
+  '韓国',
+  '英国',
+  'イギリス',
+  'フランス',
+  'ドイツ',
+  'インド',
+  '台湾',
+  'Japan',
+  'China',
+  'Russia',
+  'Korea',
+  'USA',
+  'United States',
+  'United Kingdom',
+  'France',
+  'Germany',
+  'India',
+  'Canada',
+  'Australia',
+  'Brazil',
+  'Italy',
+  'Spain',
+  'カナダ',
+  'オーストラリア',
+  'ブラジル',
+  'イタリア',
+  'スペイン',
+  '富士通',
+  '日立',
 ];
 
 function files(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
-    entry.isDirectory() ? files(join(dir, entry.name)) : [join(dir, entry.name)],
+    entry.isDirectory()
+      ? files(join(dir, entry.name))
+      : [join(dir, entry.name)],
   );
 }
 
 export function isDocumentationIPv4(ip: string): boolean {
   const parts = ip.split('.').map(Number);
-  return parts.length === 4 && parts.every((p) => p >= 0 && p <= 255) &&
-    ['192.0.2', '198.51.100', '203.0.113'].includes(parts.slice(0, 3).join('.'));
+  return (
+    parts.length === 4 &&
+    parts.every((p) => p >= 0 && p <= 255) &&
+    ['192.0.2', '198.51.100', '203.0.113'].includes(parts.slice(0, 3).join('.'))
+  );
 }
 
 describe('fictional scenario data', () => {
@@ -34,10 +81,16 @@ describe('fictional scenario data', () => {
         expect(isDocumentationIPv4(ip), `${file}: ${ip}`).toBe(true);
       }
       for (const word of banned) {
-        expect(source.toLowerCase(), `${file}: ${word}`).not.toContain(word.toLowerCase());
+        expect(source.toLowerCase(), `${file}: ${word}`).not.toContain(
+          word.toLowerCase(),
+        );
       }
-      for (const ipv6 of source.match(/\b(?:[0-9a-f]{1,4}:){2,}[0-9a-f:]*/gi) ?? []) {
-        expect(ipv6.toLowerCase().startsWith('2001:db8:'), `${file}: ${ipv6}`).toBe(true);
+      for (const ipv6 of source.match(/\b(?:[0-9a-f]{1,4}:){2,}[0-9a-f:]*/gi) ??
+        []) {
+        expect(
+          ipv6.toLowerCase().startsWith('2001:db8:'),
+          `${file}: ${ipv6}`,
+        ).toBe(true);
       }
     }
   });

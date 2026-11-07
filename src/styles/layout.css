@@ -1,27 +1,135 @@
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-html { font-size: min(.9375vw, 1.666667vh); background: #020409; }
-body { margin: 0; color: var(--fg); font-family: var(--sans); overflow: hidden; }
-#app { width: 100vw; height: 100vh; display: grid; place-items: center; }
-.console { width: min(100vw, 177.777778vh); height: min(100vh, 56.25vw); display: grid; grid-template-rows: 6.25rem 3.25rem minmax(0, 1fr) 2rem; padding: 1.2rem 1.4rem .45rem; gap: .65rem; position: relative; background: var(--bg); overflow: hidden; }
-.console[data-tone='warning'] { --accent: var(--amber); }
-.console[data-tone='critical'] { --accent: var(--red); }
-.console[data-tone='recovery'] { --accent: var(--green); }
-.dashboard { min-height: 0; display: grid; grid-template-columns: 1.08fr 1.08fr 1fr; grid-template-rows: 1.38fr .5fr .83fr; gap: .75rem; }
-.map-panel { grid-area: 1 / 1 / 2 / 3; }
-.status-panel { grid-area: 1 / 3 / 2 / 4; }
-.log-panel { grid-area: 2 / 1 / 4 / 2; }
-.terminal-panel { grid-area: 2 / 2 / 4 / 3; }
-.hex-panel { grid-area: 2 / 3 / 3 / 4; }
-.complaint-panel { grid-area: 3 / 3 / 4 / 4; }
-.panel { min-height: 0; min-width: 0; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-top: 2px solid var(--line); overflow: hidden; }
-.panel-heading { min-height: 3.7rem; display: flex; flex-wrap: wrap; align-content: center; gap: .18rem .8rem; padding: .5rem 1rem; border-bottom: 1px solid var(--line); }
-.panel h2 { margin: 0; color: var(--cyan); font-family: var(--mono); font-size: 1.333333rem; font-weight: 600; letter-spacing: .08em; }
-.panel-subtitle { color: #7e9cae; font-size: 1rem; }
-.panel-body { position: relative; flex: 1; min-height: 0; padding: .7rem 1rem; overflow: hidden; }
-.footer { display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: .86rem; color: #7f9aa9; gap: 1rem; }
-.footer-hints { display: flex; gap: 1.5rem; }
-h1,h2,p,pre { margin: 0; }
-pre { font-family: var(--mono); }
-.eyebrow { font: 1rem var(--mono); color: #7794a8; letter-spacing: .12em; }
-.muted { color: #8199a8; }
+* {
+  box-sizing: border-box;
+}
+[hidden] {
+  display: none !important;
+}
+html {
+  font-size: min(0.9375vw, 1.666667vh);
+  background: #020409;
+}
+body {
+  margin: 0;
+  color: var(--fg);
+  font-family: var(--sans);
+  overflow: hidden;
+}
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+}
+.console {
+  width: min(100vw, 177.777778vh);
+  height: min(100vh, 56.25vw);
+  display: grid;
+  grid-template-rows: 6.25rem 3.25rem minmax(0, 1fr) 2rem;
+  padding: 1.2rem 1.4rem 0.45rem;
+  gap: 0.65rem;
+  position: relative;
+  background: var(--bg);
+  overflow: hidden;
+}
+.console[data-tone='warning'] {
+  --accent: var(--amber);
+}
+.console[data-tone='critical'] {
+  --accent: var(--red);
+}
+.console[data-tone='recovery'] {
+  --accent: var(--green);
+}
+.dashboard {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.08fr 1.08fr 1fr;
+  grid-template-rows: 1.38fr 0.6fr 0.73fr;
+  gap: 0.75rem;
+}
+.map-panel {
+  grid-area: 1 / 1 / 2 / 3;
+}
+.status-panel {
+  grid-area: 1 / 3 / 2 / 4;
+}
+.log-panel {
+  grid-area: 2 / 1 / 4 / 2;
+}
+.terminal-panel {
+  grid-area: 2 / 2 / 4 / 3;
+}
+.hex-panel {
+  grid-area: 2 / 3 / 3 / 4;
+}
+.complaint-panel {
+  grid-area: 3 / 3 / 4 / 4;
+}
+.panel {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--line);
+  overflow: hidden;
+}
+.panel-heading {
+  min-height: 3.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 0.18rem 0.8rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.panel h2 {
+  margin: 0;
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 1.333333rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.panel-subtitle {
+  color: #7e9cae;
+  font-size: 1rem;
+}
+.panel-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 0.7rem 1rem;
+  overflow: hidden;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+  color: #7f9aa9;
+  gap: 1rem;
+}
+.footer-hints {
+  display: flex;
+  gap: 1.5rem;
+}
+h1,
+h2,
+p,
+pre {
+  margin: 0;
+}
+pre {
+  font-family: var(--mono);
+}
+.eyebrow {
+  font: 1rem var(--mono);
+  color: #7794a8;
+  letter-spacing: 0.12em;
+}
+.muted {
+  color: #8199a8;
+}
