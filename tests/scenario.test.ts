@@ -8,7 +8,10 @@ describe('manual scenario', () => {
     state.tick(30_000);
     expect(state.scene).toBe('BOOT');
     expect(state.anyKey()).toBe(true);
-    for (const scene of sceneOrder.slice(2)) { state.move(1); expect(state.scene).toBe(scene); }
+    for (const scene of sceneOrder.slice(2)) {
+      state.move(1);
+      expect(state.scene).toBe(scene);
+    }
     expect(state.move(1)).toBe(false);
     state.move(-1);
     expect(state.scene).toBe('RECOVERY');
@@ -45,7 +48,10 @@ describe('manual scenario', () => {
     const state = new Scenario();
     const seen: string[] = [];
     const unsubscribe = state.changed.subscribe((scene) => seen.push(scene));
-    state.go('NORMAL'); state.go('NORMAL'); unsubscribe(); state.go('DETECT');
+    state.go('NORMAL');
+    state.go('NORMAL');
+    unsubscribe();
+    state.go('DETECT');
     expect(seen).toEqual(['NORMAL']);
   });
 });

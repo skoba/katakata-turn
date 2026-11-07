@@ -10,11 +10,31 @@ export function createEventLog() {
     const line = element('div', 'log-row');
     line.dataset.tone = scenes[scene].tone;
     const time = `${date.toLocaleTimeString('ja-JP', { hour12: false })}.${String(date.getMilliseconds()).padStart(3, '0')}`;
-    line.append(element('span', 'log-time', time), element('span', 'log-level', logLevels[scenes[scene].tone as keyof typeof logLevels]), element('span', 'log-source', logSources[sequence % logSources.length]), element('span', 'log-message', message));
+    line.append(
+      element('span', 'log-time', time),
+      element(
+        'span',
+        'log-level',
+        logLevels[scenes[scene].tone as keyof typeof logLevels],
+      ),
+      element('span', 'log-source', logSources[sequence % logSources.length]),
+      element('span', 'log-message', message),
+    );
     sequence++;
     body.append(line);
     while (body.childElementCount > 200) body.firstElementChild!.remove();
     body.scrollTop = body.scrollHeight;
   }
-  return { root, append, ambient(scene: Scene, date: Date) { const pool = logMessages[scene]; append(pool[sequence % pool.length], scene, date); }, reset() { body.replaceChildren(); sequence = 0; } };
+  return {
+    root,
+    append,
+    ambient(scene: Scene, date: Date) {
+      const pool = logMessages[scene];
+      append(pool[sequence % pool.length], scene, date);
+    },
+    reset() {
+      body.replaceChildren();
+      sequence = 0;
+    },
+  };
 }

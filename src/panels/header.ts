@@ -5,7 +5,11 @@ import { scenes, type Scene } from '../scenario/scenes';
 export function createHeader() {
   const root = element('header', 'header');
   const branding = element('div', 'branding');
-  branding.append(element('div', 'eyebrow', ui.section), element('h1', '', ui.title), element('div', 'hospital', ui.hospital));
+  branding.append(
+    element('div', 'eyebrow', ui.section),
+    element('h1', '', ui.title),
+    element('div', 'hospital', ui.hospital),
+  );
   const scene = element('div', 'scene-name');
   const alert = element('strong', 'alert-number');
   const clock = element('time', 'clock-value');
@@ -17,10 +21,20 @@ export function createHeader() {
   const timeBox = element('div', 'header-stat');
   timeBox.append(element('span', 'eyebrow', ui.clock), clock);
   root.append(branding, sceneBox, alertBox, timeBox);
-  return { root, render(current: Scene, elapsed: number, muted: boolean, date: Date) {
-    scene.textContent = `${current} / ${scenes[current].name}`;
-    alert.textContent = current === 'DETECT' && elapsed > 3000 ? '3' : current === 'INCIDENT' && elapsed > 3000 ? '1' : current === 'RECOVERY' ? String(Math.min(5, 1 + Math.floor(elapsed / 2200))) : scenes[current].alert;
-    clock.textContent = date.toLocaleTimeString('ja-JP', { hour12: false });
-    mute.textContent = muted ? ui.mute : ui.unmute;
-  } };
+  return {
+    root,
+    render(current: Scene, elapsed: number, muted: boolean, date: Date) {
+      scene.textContent = `${current} / ${scenes[current].name}`;
+      alert.textContent =
+        current === 'DETECT' && elapsed > 3000
+          ? '3'
+          : current === 'INCIDENT' && elapsed > 3000
+            ? '1'
+            : current === 'RECOVERY'
+              ? String(Math.min(5, 1 + Math.floor(elapsed / 2200)))
+              : scenes[current].alert;
+      clock.textContent = date.toLocaleTimeString('ja-JP', { hour12: false });
+      mute.textContent = muted ? ui.mute : ui.unmute;
+    },
+  };
 }

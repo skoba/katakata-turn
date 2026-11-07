@@ -7,7 +7,9 @@ export class Scenario {
   turnElapsed: number | null = null;
   readonly changed = new Events<Scene>();
 
-  get busy(): boolean { return this.turnElapsed !== null; }
+  get busy(): boolean {
+    return this.turnElapsed !== null;
+  }
 
   go(scene: Scene): boolean {
     if (this.busy || this.scene === scene) return false;
@@ -18,11 +20,19 @@ export class Scenario {
   }
 
   move(direction: -1 | 1): boolean {
-    const index = Math.max(0, Math.min(sceneOrder.length - 1, sceneOrder.indexOf(this.scene) + direction));
+    const index = Math.max(
+      0,
+      Math.min(
+        sceneOrder.length - 1,
+        sceneOrder.indexOf(this.scene) + direction,
+      ),
+    );
     return this.go(sceneOrder[index]);
   }
 
-  anyKey(): boolean { return this.scene === 'BOOT' && this.go('NORMAL'); }
+  anyKey(): boolean {
+    return this.scene === 'BOOT' && this.go('NORMAL');
+  }
 
   enter(): 'turn' | 'accepted' | 'ignored' {
     if (this.busy) return 'ignored';

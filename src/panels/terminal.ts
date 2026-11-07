@@ -11,10 +11,15 @@ export function createTerminal() {
   line.append(current, element('span', 'cursor', '▌'));
   const hint = element('div', 'terminal-hint', ui.terminalIdle);
   body.append(session, history, line, hint);
-  return { root, render(buffer: TypingBuffer, counter: boolean) {
-    history.textContent = buffer.lines.length ? buffer.lines.join('\n') : ui.terminalReady;
-    history.scrollTop = history.scrollHeight;
-    current.textContent = buffer.current || ui.terminalPrompt;
-    hint.textContent = counter ? ui.counterHint : ui.terminalIdle;
-  } };
+  return {
+    root,
+    render(buffer: TypingBuffer, counter: boolean) {
+      history.textContent = buffer.lines.length
+        ? buffer.lines.join('\n')
+        : ui.terminalReady;
+      history.scrollTop = history.scrollHeight;
+      current.textContent = buffer.current || ui.terminalPrompt;
+      hint.textContent = counter ? ui.counterHint : ui.terminalIdle;
+    },
+  };
 }
