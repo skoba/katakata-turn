@@ -5,7 +5,6 @@ export const ui = {
   disclaimer: 'DEMO — ALL DATA FICTIONAL / 架空データ',
   section: 'DEFENSE OPERATIONS / SIMULATION',
   panel: {
-    map: 'THREAT MAP',
     systems: 'SYSTEM STATUS',
     log: 'EVENT LOG',
     terminal: 'TERMINAL',
@@ -13,7 +12,6 @@ export const ui = {
     complaints: 'COMPLAINT QUEUE',
   },
   subtitles: {
-    map: '閉域網・クラウド接続の監視',
     systems: '院内サービス稼働状況',
     log: '防御イベントストリーム',
     terminal: '防御コマンドコンソール',
@@ -29,11 +27,6 @@ export const ui = {
   counter: '不正アクセス試行',
   perMinute: '/min',
   nominal: '通常トラフィック',
-  attack: '不審トラフィック',
-  shield: 'SHIELD ACTIVE',
-  targets: ['CLOUD-DC-EAST', 'DR-SITE-WEST'],
-  sourceLabels: ['UNKNOWN', 'BOTNET-NODE-07', 'TOR-EXIT-12', 'RELAY-04'],
-  mapCaption: 'OFFLINE TOPOLOGY / FICTIONAL ORIGINS',
   noEvents: 'イベントを待機中',
   terminalPrompt: '$ ',
   terminalIdle: '任意の文字キーで防御コマンドを入力',

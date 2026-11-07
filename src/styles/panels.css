@@ -64,20 +64,20 @@ h1 {
   background: var(--accent);
   margin-right: 0.9rem;
 }
-.map-panel .panel-body {
+.topology-panel .panel-body {
   padding: 0;
 }
-.map-panel canvas {
+.topology-panel canvas {
   width: 100%;
   height: 100%;
   display: block;
 }
-.map-caption {
+.topology-caption {
   position: absolute;
-  bottom: 0.6rem;
+  bottom: 0.2rem;
   left: 1rem;
   color: #7f9aa9;
-  font: 1rem var(--mono);
+  font: max(13px, 0.9rem) var(--mono);
   pointer-events: none;
 }
 .system-row {

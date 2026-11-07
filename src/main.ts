@@ -5,7 +5,7 @@ import { Scenario } from './engine/scenario';
 import { startClock } from './engine/clock';
 import { element } from './panels/dom';
 import { createHeader } from './panels/header';
-import { createThreatMap } from './panels/threatMap';
+import { createTopology } from './panels/topology';
 import { createSystemStatus } from './panels/systemStatus';
 import { createEventLog } from './panels/eventLog';
 import { createTerminal } from './panels/terminal';
@@ -29,7 +29,7 @@ const frame = element('main', 'console');
 document.title = ui.documentTitle;
 frame.dataset.scene = 'BOOT';
 const header = createHeader();
-const map = createThreatMap();
+const topology = createTopology();
 const systems = createSystemStatus();
 const log = createEventLog();
 const terminal = createTerminal();
@@ -42,7 +42,7 @@ const assistantPanel = createAssistant();
 const dashboard = element('div', 'dashboard');
 const rightColumn = element('div', 'right-column');
 for (const [widget, className] of [
-  [map, 'map-panel'],
+  [topology, 'topology-panel'],
   [systems, 'status-panel'],
   [log, 'log-panel'],
   [terminal, 'terminal-panel'],
@@ -244,7 +244,7 @@ startClock((delta, time) => {
     while (recovered < count)
       log.append(recoveryLog(systemNames[recovered++]), scene, new Date());
   }
-  map.render(scene, elapsed, scenario.turnElapsed, delta);
+  topology.render(scene, elapsed, scenario.turnElapsed, delta);
   assistantPanel.render(assistant, time);
   if (time - lastPaint >= 80) {
     header.render(scene, elapsed, muted, new Date());
