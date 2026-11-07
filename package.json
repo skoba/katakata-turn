@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "e2e": "node scripts/capture.mjs",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "e2e:phase2": "node scripts/phase2-check.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

@@ -309,7 +309,7 @@ try {
     backstageBounds.x + backstageBounds.width <= assistantBounds.x,
     'BACKSTAGE must leave the confession visible',
   );
-  await capture('09-backstage-static');
+  await capture('09-backstage');
   await page.keyboard.press('Escape');
   // Check bounded visible panels at the two presentation resolutions.
   for (const viewport of [
