@@ -13,7 +13,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "e2e": "node scripts/capture.mjs",
+    "e2e": "node scripts/capture.mjs && node scripts/phase2-check.mjs",
     "format": "prettier --write .",
     "e2e:phase2": "node scripts/phase2-check.mjs"
   },

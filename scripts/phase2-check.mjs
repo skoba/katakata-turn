@@ -1,4 +1,4 @@
-// Targeted Phase 2 checks. All pages are file:// and offline; time is virtual.
+// Extended E2E: audio, repeatability, a full autoplay cycle and retention.
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
@@ -29,13 +29,17 @@ try {
     offline: true,
   });
   context.on('request', (request) => {
-    if (/^(https?|wss?):/i.test(request.url())) requests.push(request.url());
+    if (!/^(file|data|blob|about):/i.test(request.url()))
+      requests.push(request.url());
+  });
+  context.on('page', (page) => {
+    page.on('pageerror', (error) => failures.push(error.message));
+    page.on('console', (message) => {
+      if (message.type() === 'error') failures.push(message.text());
+    });
+    page.on('websocket', (socket) => requests.push(socket.url()));
   });
   const page = await context.newPage();
-  page.on('pageerror', (error) => failures.push(error.message));
-  page.on('console', (message) => {
-    if (message.type() === 'error') failures.push(message.text());
-  });
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.addInitScript(() => {
@@ -165,7 +169,6 @@ try {
   // Seed repeatability is measured at the same virtual frame and input sequence.
   async function seededSnapshot(seed) {
     const probe = await context.newPage();
-    probe.on('pageerror', (error) => failures.push(error.message));
     // Drive exactly the same frame deltas; browser time origins vary by page.
     await probe.addInitScript(() => {
       let now = 0;

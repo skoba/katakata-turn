@@ -1,4 +1,4 @@
-// Optional capture/smoke tool; no web server or network is required.
+// Phase 3 presentation checks against the shipped, offline single HTML.
 import { chromium } from 'playwright';
 import { mkdir, readdir, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -30,17 +30,21 @@ try {
     offline: true,
   });
   const page = await context.newPage();
-  page.on('request', (request) => {
-    if (/^(https?|wss?):/i.test(request.url())) requests.push(request.url());
+  context.on('request', (request) => {
+    if (!/^(file|data|blob|about):/i.test(request.url()))
+      requests.push(request.url());
   });
+  page.on('websocket', (socket) => requests.push(socket.url()));
   page.on('pageerror', (error) => failures.push(error.message));
   page.on('console', (message) => {
     if (message.type() === 'error') failures.push(message.text());
   });
   page.on('dialog', (dialog) => dialog.dismiss());
+  await page.clock.install();
   const url = pathToFileURL(resolve('dist/index.html'));
   url.search = 'nobeforeunload&seed=123';
   await page.goto(url.href);
+  const manualStart = performance.now();
   const waitScene = (scene) =>
     page.waitForFunction(
       (expected) =>
@@ -148,7 +152,16 @@ try {
   assert.equal(await speech.textContent(), '…', 'T must stay silent while OFF');
   await page.keyboard.press('Control+Shift+a');
   await assistantOn(true);
+  const documentId = await page.evaluate(() => {
+    window.__documentId = crypto.randomUUID();
+    return window.__documentId;
+  });
+  let navigations = 0;
+  page.on('framenavigated', () => navigations++);
   await page.keyboard.press('F5');
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(() => window.__documentId), documentId);
+  assert.equal(navigations, 0, 'F5 must not reload or navigate');
   await waitScene('NORMAL');
   await page.keyboard.press('PageDown');
   await waitScene('DETECT');
@@ -228,6 +241,21 @@ try {
   assert.equal(await page.locator('.help').isVisible(), true);
   await page.keyboard.press('Escape');
   await page.keyboard.press('Enter');
+  await page.locator('.turn-overlay').waitFor({ state: 'visible' });
+  const lockedTerminal = await page.locator('.terminal-input').textContent();
+  // Include repeated keydown events and all feature keys during the turn.
+  await page.evaluate(() => {
+    for (let i = 0; i < 100; i++)
+      for (const key of ['Enter', 'a', 'b', 'h', 'm', 't', 'r', '4', ' '])
+        document.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key,
+            repeat: true,
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
+  });
   for (const key of [
     'Enter',
     'Enter',
@@ -238,6 +266,13 @@ try {
   ])
     await page.keyboard.press(key);
   await waitScene('COUNTER');
+  assert.equal(
+    await page.locator('.terminal-input').textContent(),
+    lockedTerminal,
+    'typing must stay locked during the turn',
+  );
+  assert.equal(await page.locator('.help').isVisible(), false);
+  assert.equal(await page.locator('.backstage').isVisible(), false);
   await page.waitForFunction(
     () => document.querySelector('.topology-panel')?.dataset.shield === 'true',
   );
@@ -251,7 +286,11 @@ try {
   await page.waitForFunction(
     () => document.querySelectorAll('.turn-overlay progress')[2]?.value === 1,
   );
-  await page.waitForTimeout(150);
+  // Freeze the final turn stage so screenshot latency cannot race RECOVERY.
+  await page.clock.pauseAt(
+    new Date(await page.evaluate(() => Date.now() + 100)),
+  );
+  await page.clock.runFor(350);
   await checkTopology();
   await capture('05b-counter-deployed');
   await waitSpeech('セッション破棄 完了');
@@ -267,6 +306,7 @@ try {
     await page.locator('.assistant-speech:not([hidden])').count(),
     4,
   );
+  await page.clock.resume();
   await page.waitForFunction(
     () =>
       document.querySelector('.console')?.getAttribute('data-scene') ===
@@ -288,6 +328,7 @@ try {
   assert.equal(await page.locator('.complaint-total').textContent(), '0');
   await page.keyboard.press('PageDown');
   await waitScene('END');
+  assert.ok(performance.now() - manualStart < 180_000, 'manual flow <3 min');
   await waitSpeech('全システム正常。監視を継続しています。');
   await capture('07-end');
   await page.keyboard.press('h');
@@ -329,6 +370,35 @@ try {
       );
       await page.waitForTimeout(120);
       await checkTopology();
+      const readability = await page.evaluate(() => {
+        const log = document.querySelector('.event-list');
+        const bounds = log.getBoundingClientRect();
+        return {
+          visibleLogs: [...log.children].filter((row) => {
+            const rect = row.getBoundingClientRect();
+            return rect.top >= bounds.top && rect.bottom <= bounds.bottom;
+          }).length,
+          packetFontSizes: [
+            ...document.querySelectorAll(
+              '.hex-panel .eyebrow, .hex-data, .packet-footer',
+            ),
+          ].map((node) => parseFloat(getComputedStyle(node).fontSize)),
+          hexClipped: (() => {
+            const hex = document.querySelector('.hex-data');
+            return hex.scrollWidth > hex.clientWidth;
+          })(),
+        };
+      });
+      assert.ok(
+        readability.visibleLogs >= 3,
+        `${viewport.width}: at least three complete EVENT LOG entries (${readability.visibleLogs})`,
+      );
+      if (viewport.width === 1920)
+        assert.ok(
+          readability.packetFontSizes.every((size) => size >= 16),
+          '1080p PACKET / HEX text must be at least 16px',
+        );
+      assert.equal(readability.hexClipped, false, 'HEX columns must fit');
       if (viewport.width === 1280 && key === '3')
         await capture('13-incident-720p');
       if (viewport.width === 1280 && key === '4') {
