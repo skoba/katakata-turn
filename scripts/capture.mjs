@@ -1,4 +1,4 @@
-// Optional Phase 1 capture/smoke tool; no web server or network is required.
+// Optional capture/smoke tool; no web server or network is required.
 import { chromium } from 'playwright';
 import { mkdir, readdir, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -39,7 +39,7 @@ try {
   });
   page.on('dialog', (dialog) => dialog.dismiss());
   const url = pathToFileURL(resolve('dist/index.html'));
-  url.search = 'nobeforeunload';
+  url.search = 'nobeforeunload&seed=123';
   await page.goto(url.href);
   const waitScene = (scene) =>
     page.waitForFunction(
@@ -50,13 +50,45 @@ try {
     );
   const capture = (name) =>
     page.screenshot({ path: resolve(output, `${name}.png`) });
+  const speech = page.locator('.assistant-log');
+  const waitSpeech = (text) =>
+    page.waitForFunction(
+      (expected) =>
+        [...document.querySelectorAll('.assistant-speech:not([hidden])')]
+          .at(-1)
+          ?.textContent.includes(expected),
+      text,
+    );
+  const assistantOn = async (enabled) => {
+    await page.waitForFunction(
+      (expected) =>
+        document.querySelector('.assistant-panel')?.dataset.autonomy ===
+        String(expected),
+      enabled,
+    );
+  };
   await waitScene('BOOT');
   await page.waitForTimeout(3800);
   await capture('01-boot');
   await page.keyboard.press('Space');
   await waitScene('NORMAL');
-  await page.waitForTimeout(250);
+  await waitSpeech('異常なし。定期バックアップは 03:00 に完了しています。');
   await capture('02-normal');
+  await page.keyboard.press('t');
+  await waitSpeech('全システム正常、定期バックアップは完了しています。');
+  await page.keyboard.press('Control+Shift+a');
+  await assistantOn(false);
+  await waitSpeech('…');
+  assert.equal(
+    await page.locator('.assistant-status').textContent(),
+    'AWAITING HUMAN',
+  );
+  await capture('11-assistant-autonomy-off');
+  await page.keyboard.press('t');
+  await page.waitForTimeout(150);
+  assert.equal(await speech.textContent(), '…', 'T must stay silent while OFF');
+  await page.keyboard.press('Control+Shift+a');
+  await assistantOn(true);
   await page.keyboard.press('F5');
   await waitScene('NORMAL');
   await page.keyboard.press('PageDown');
@@ -71,6 +103,25 @@ try {
   await capture('04-incident');
   await page.keyboard.press('PageDown');
   await waitScene('COUNTER');
+  await page.keyboard.press('Control+Shift+a');
+  await assistantOn(false);
+  await page.keyboard.press('Control+t');
+  await page.waitForTimeout(150);
+  assert.equal(await speech.textContent(), '…');
+  await page.keyboard.press('Control+Shift+a');
+  await assistantOn(true);
+  await page.keyboard.press('Control+t');
+  await waitSpeech(
+    '対処コマンドを準備し、Enter による実行承認を待っています。',
+  );
+  const beforeTyping = await speech.textContent();
+  await page.keyboard.press('t');
+  await waitSpeech('コマンドを受理… 構文を補完しています。');
+  assert.notEqual(
+    await speech.textContent(),
+    beforeTyping,
+    'plain T must type and trigger the COUNTER input cue',
+  );
   await page.keyboard.type('bmh1rf katakatakatakatakatakatakatakata');
   await page.waitForTimeout(300);
   await capture('05-counter');
@@ -100,6 +151,19 @@ try {
   await waitScene('COUNTER');
   await page.waitForTimeout(7300);
   await capture('05b-counter-deployed');
+  await waitSpeech('セッション破棄 完了');
+  assert.match(await speech.textContent(), /セグメント隔離 完了/);
+  assert.match(await speech.textContent(), /DR サイトへ切替 完了/);
+  assert.deepEqual(
+    await page
+      .locator('.turn-overlay progress')
+      .evaluateAll((bars) => bars.map((bar) => bar.value)),
+    [1, 1, 1],
+  );
+  assert.equal(
+    await page.locator('.assistant-speech:not([hidden])').count(),
+    4,
+  );
   await page.waitForFunction(
     () =>
       document.querySelector('.console')?.getAttribute('data-scene') ===
@@ -117,12 +181,19 @@ try {
   assert.equal(await page.locator('.complaint-total').textContent(), '0');
   await page.keyboard.press('PageDown');
   await waitScene('END');
-  await page.waitForTimeout(150);
+  await waitSpeech('全システム正常。監視を継続しています。');
   await capture('07-end');
   await page.keyboard.press('h');
   await capture('08-help');
   await page.keyboard.press('Escape');
   await page.keyboard.press('b');
+  await waitSpeech('私が行ったのは状況の読み上げです。');
+  const assistantBounds = await page.locator('.assistant-panel').boundingBox();
+  const backstageBounds = await page.locator('.backstage').boundingBox();
+  assert.ok(
+    backstageBounds.x + backstageBounds.width <= assistantBounds.x,
+    'BACKSTAGE must leave the confession visible',
+  );
   await capture('09-backstage-static');
   await page.keyboard.press('Escape');
   // Check bounded visible panels at the two presentation resolutions.
@@ -142,6 +213,23 @@ try {
         ],
       );
       await page.waitForTimeout(120);
+      const rightColumn = await page
+        .locator('.right-column > .panel')
+        .evaluateAll((panels) =>
+          panels.map((panel) => ({
+            title: panel.querySelector('h2').textContent,
+            top: panel.getBoundingClientRect().top,
+            bottom: panel.getBoundingClientRect().bottom,
+          })),
+        );
+      assert.deepEqual(
+        rightColumn.map((panel) => panel.title),
+        ['SYSTEM STATUS', 'AI ASSISTANT', 'COMPLAINT QUEUE'],
+      );
+      assert.ok(
+        rightColumn[0].bottom <= rightColumn[1].top &&
+          rightColumn[1].bottom <= rightColumn[2].top,
+      );
       const overflow = await page.locator('.panel').evaluateAll(
         (panels) =>
           panels.filter((panel) => {
@@ -157,7 +245,7 @@ try {
       assert.equal(overflow, 0, `${viewport.width}: panel overflow`);
       const clipped = await page
         .locator(
-          '.system-row, .hex-data, .packet-footer, .complaint-row:not([hidden]), .complaint-empty:not([hidden])',
+          '.system-row, .hex-data, .packet-footer, .complaint-row:not([hidden]), .complaint-empty:not([hidden]), .assistant-indicator',
         )
         .evaluateAll((nodes) =>
           nodes
@@ -174,14 +262,21 @@ try {
         );
       assert.deepEqual(clipped, [], `${viewport.width}: clipped panel content`);
     }
-    if (viewport.width === 1280) await capture('10-end-720p');
+    if (viewport.width === 1280) {
+      await waitSpeech('全システム正常。監視を継続しています。');
+      await capture('10-end-720p');
+      await page.keyboard.press('b');
+      await waitSpeech('私が行ったのは状況の読み上げです。');
+      await capture('12-assistant-backstage-720p');
+      await page.keyboard.press('Escape');
+    }
   }
   await page.keyboard.press('r');
   await waitScene('BOOT');
   assert.deepEqual(failures, [], 'browser errors');
   assert.deepEqual(requests, [], 'external network requests');
   console.log(
-    'Captured BOOT–END at 1920×1080; checked 720p, clicker, F5, turn input lock, recovery, zero browser errors and zero external requests.',
+    'Captured BOOT–END and assistant at 1080p / 720p; checked T / Ctrl+T, AUTONOMY, turn narration, BACKSTAGE confession, clicker, F5, input lock, recovery, zero browser errors and zero external requests.',
   );
   await context.close();
 } finally {
