@@ -33,11 +33,7 @@ export const ui = {
   counterHint: '文字キーで入力 → Enter で対処実行',
   terminalSession: 'LOCAL SESSION / DEFENSIVE CLI',
   terminalReady: 'DEFENSE SESSION READY',
-  packetHeader: 'OFFSET    PAYLOAD',
-  packets: [
-    '0000    4B 41 54 41  20 53 4F 43',
-    '0010    44 45 4D 4F  20 4F 4E 4C',
-  ],
+  packetHeader: 'HEX / ASCII',
   packetFooter: 'SIMULATED PAYLOAD / OFFLINE',
   complaintsUnit: '件',
   resolved: '対応済み',

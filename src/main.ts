@@ -38,10 +38,10 @@ const header = createHeader();
 const topology = createTopology(random(0x544f504f));
 const intelPanel = createIntel();
 const intel = new Intel();
-const systems = createSystemStatus();
+const systems = createSystemStatus(random(0x525454));
 const log = createEventLog();
 const terminal = createTerminal();
-const hex = createHexdump();
+const hex = createHexdump(random(0x484558));
 const complaints = createComplaints();
 const backstage = createBackstage();
 const banner = createBanner();
@@ -112,6 +112,7 @@ let lastLog = 0;
 let recovered = 0;
 let lastAutoType = 0;
 let recoveryChimed = false;
+let statusDelta = 0;
 
 scenario.turned.subscribe(() => {
   sfx.play('turn');
@@ -156,6 +157,9 @@ function changeScene(scene: Scene) {
   if (scene === 'BOOT') {
     typing.reset();
     log.reset();
+    hex.reset();
+    systems.reset();
+    statusDelta = 0;
   }
   log.ambient(scene, new Date());
   lastPaint = -Infinity;
@@ -287,13 +291,16 @@ startClock((delta, time) => {
     while (recovered < count)
       log.append(recoveryLog(systemNames[recovered++]), scene, new Date());
   }
+  hex.render(delta, scene);
+  statusDelta += delta;
   topology.render(scene, elapsed, scenario.turnElapsed, delta);
   assistantPanel.render(assistant, time);
   if (time - lastPaint >= 80) {
+    systems.render(scene, elapsed, statusDelta);
+    statusDelta = 0;
     intelPanel.render(intel);
     backstage.render(intel.reloads, complaintModel.handled);
     header.render(scene, elapsed, sfx.muted, new Date(), scenario.autoplay);
-    systems.render(scene, elapsed);
     terminal.render(typing, scene === 'COUNTER');
     complaints.render(scene, complaintModel);
     banner.render(scene, elapsed, scenario.turnElapsed, time);

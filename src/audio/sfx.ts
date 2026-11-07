@@ -14,6 +14,7 @@ export class Sfx {
 
   async unlock(): Promise<void> {
     try {
+      const firstGesture = !this.context;
       if (!this.context) {
         if (typeof AudioContext === 'undefined') return;
         this.context = new AudioContext();
@@ -21,7 +22,7 @@ export class Sfx {
         this.master.connect(this.context.destination);
         this.applyVolume();
       }
-      if (this.context.state === 'suspended') {
+      if (firstGesture || this.context.state === 'suspended') {
         if (!this.resuming) {
           this.resuming = this.context.resume().finally(() => {
             this.resuming = null;

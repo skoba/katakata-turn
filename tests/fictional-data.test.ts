@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import ts from 'typescript';
+import { packetFragments } from '../src/scenario/packets';
 import { advisories } from '../src/scenario/intel';
 
 const root = fileURLToPath(new URL('../src/scenario/', import.meta.url));
@@ -78,7 +79,13 @@ describe('fictional scenario data', () => {
   it('scans every scenario source, including future nested files', () => {
     const sources = files(root);
     expect(sources.length).toBeGreaterThan(0);
-    for (const name of ['assistant.ts', 'intel.ts', 'topology.ts'])
+    for (const name of [
+      'assistant.ts',
+      'intel.ts',
+      'topology.ts',
+      'packets.ts',
+      'backstage.ts',
+    ])
       expect(sources).toContain(join(root, name));
     for (const file of sources) {
       const source = readFileSync(file, 'utf8');
@@ -131,6 +138,16 @@ describe('fictional scenario data', () => {
       expect(advisory.summary).not.toMatch(/[0-9]|https?:|www\.|CVE|CWE|JVN/i);
     }
   });
+  it('uses protocol structure without patient segments or identifying fields', () => {
+    const payload = packetFragments.join(' ');
+    expect(payload).toContain('MSH|^~\\&|');
+    expect(payload).toContain('"resourceType":"Bundle"');
+    expect(payload).toContain('(0008,0060)');
+    expect(payload).not.toMatch(
+      /PID[|:=-]|Patient|identifier|birth|name|\b\d{8}\b|\b\d{4}[-/]\d{2}[-/]\d{2}\b/i,
+    );
+  });
+
   it('rejects live addresses and invalid octets', () => {
     for (const ip of ['8.8.8.8', '10.0.0.1', '203.0.113.256', '192.0.3.1']) {
       expect(isDocumentationIPv4(ip)).toBe(false);

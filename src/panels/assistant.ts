@@ -52,6 +52,8 @@ export function createAssistant() {
           const entry = entries[index];
           row.hidden = !entry;
           text.textContent = entry?.visible ?? '';
+          row.title = entry?.text ?? '';
+          row.classList.toggle('is-latest', index === entries.length - 1);
           cursor.hidden = index !== entries.length - 1;
         });
         log.scrollTop = log.scrollHeight;
