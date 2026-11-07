@@ -10,7 +10,7 @@ import {
 } from '../scenario/topology';
 import { systemState, type SystemState } from '../engine/systems';
 import { topologyPhase } from '../engine/topology';
-import { createRng } from '../engine/rng';
+import type { Random } from '../engine/rng';
 import type { Scene } from '../scenario/scenes';
 
 type Point = { x: number; y: number };
@@ -47,7 +47,7 @@ function attackPoint(distance: number): Point {
   return attackPath.at(-1)!;
 }
 
-export function createTopology() {
+export function createTopology(random: Random) {
   const { root, body } = panel(topologyCopy.title, topologyCopy.subtitle);
   const canvas = document.createElement('canvas');
   canvas.setAttribute(
@@ -57,7 +57,6 @@ export function createTopology() {
   const caption = element('span', 'topology-caption', topologyCopy.caption);
   body.append(canvas, caption);
   const context = canvas.getContext('2d')!;
-  const random = createRng(0x544f504f);
   const attacks: Attack[] = [];
   const sparks: Spark[] = [];
   let spawn = 0;

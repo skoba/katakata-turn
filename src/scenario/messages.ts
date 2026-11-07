@@ -57,7 +57,9 @@ export const ui = {
   ],
   bootHint: '任意キーで監視画面へ',
   close: 'Esc で閉じる',
-  autoReserved: '自動再生は Phase 2 で対応予定 / 手動進行を使用してください',
+  autoOn: 'AUTOPLAY ON / 各シーン 20 秒で進行',
+  autoOff: 'AUTOPLAY OFF / 手動進行',
+  autoLabel: ' / AUTO',
   fullscreenFailed:
     '全画面表示を開始できません。ブラウザの全画面操作を使用してください。',
 };

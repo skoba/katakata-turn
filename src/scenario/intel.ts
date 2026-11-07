@@ -53,3 +53,6 @@ export function cloudStatus(scene: Scene, affected: boolean): string {
 }
 export const intelTime = (timestamp: number): string =>
   new Date(timestamp).toLocaleTimeString('ja-JP', { hour12: false });
+
+// About 58 theatrical reloads during a 30-second INCIDENT.
+export const reloadInterval = 510;

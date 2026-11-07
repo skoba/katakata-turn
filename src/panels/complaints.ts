@@ -1,6 +1,7 @@
 import { panel, element } from './dom';
 import { ui } from '../scenario/messages';
-import { complaintLabels, incidentCounts } from '../scenario/complaints';
+import { complaintLabels } from '../scenario/complaints';
+import type { Complaints } from '../engine/complaints';
 import type { Scene } from '../scenario/scenes';
 
 export function createComplaints() {
@@ -23,22 +24,10 @@ export function createComplaints() {
   body.append(metric, list, empty);
   return {
     root,
-    render(scene: Scene, elapsed: number) {
+    render(scene: Scene, model: Complaints) {
       let sum = 0;
       items.forEach(({ row, count }, i) => {
-        let value =
-          scene === 'DETECT' && i === 0
-            ? 1
-            : ['INCIDENT', 'COUNTER', 'RECOVERY'].includes(scene)
-              ? incidentCounts[i]
-              : 0;
-        if (scene === 'INCIDENT')
-          value = Math.min(
-            value,
-            Math.max(i === 4 ? 1 : 0, Math.ceil(elapsed / 500) + 1),
-          );
-        if (scene === 'RECOVERY')
-          value = Math.ceil(value * Math.max(0, 1 - elapsed / 8500));
+        const value = model.counts[i];
         sum += value;
         row.hidden = value === 0 && scene !== 'RECOVERY';
         row.classList.toggle('resolved', value === 0);

@@ -1,3 +1,4 @@
+import { alertLevel } from '../engine/alert';
 import { element } from './dom';
 import { ui } from '../scenario/messages';
 import { scenes, type Scene } from '../scenario/scenes';
@@ -23,16 +24,15 @@ export function createHeader() {
   root.append(branding, sceneBox, alertBox, timeBox);
   return {
     root,
-    render(current: Scene, elapsed: number, muted: boolean, date: Date) {
-      scene.textContent = `${current} / ${scenes[current].name}`;
-      alert.textContent =
-        current === 'DETECT' && elapsed > 3000
-          ? '3'
-          : current === 'INCIDENT' && elapsed > 3000
-            ? '1'
-            : current === 'RECOVERY'
-              ? String(Math.min(5, 1 + Math.floor(elapsed / 2200)))
-              : scenes[current].alert;
+    render(
+      current: Scene,
+      elapsed: number,
+      muted: boolean,
+      date: Date,
+      autoplay: boolean,
+    ) {
+      scene.textContent = `${current} / ${scenes[current].name}${autoplay ? ui.autoLabel : ''}`;
+      alert.textContent = alertLevel(current, elapsed);
       clock.textContent = date.toLocaleTimeString('ja-JP', { hour12: false });
       mute.textContent = muted ? ui.mute : ui.unmute;
     },

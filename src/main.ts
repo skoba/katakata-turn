@@ -7,6 +7,7 @@ import { element } from './panels/dom';
 import { createHeader } from './panels/header';
 import { createTopology } from './panels/topology';
 import { createIntel } from './panels/intel';
+import { Complaints } from './engine/complaints';
 import { Intel } from './engine/intel';
 import { createSystemStatus } from './panels/systemStatus';
 import { createEventLog } from './panels/eventLog';
@@ -19,7 +20,7 @@ import { createHelp } from './panels/help';
 import { createAssistant } from './panels/assistant';
 import { Assistant } from './engine/assistant';
 import { TypingBuffer } from './input/typing';
-import { createRng } from './engine/rng';
+import { randomStreams } from './engine/rng';
 import { mapKey } from './input/keymap';
 import { sceneOrder } from './scenario/scenes';
 import './styles/tokens.css';
@@ -27,11 +28,13 @@ import './styles/layout.css';
 import './styles/panels.css';
 import './styles/effects.css';
 
+const random = randomStreams(location.search);
+const complaintModel = new Complaints();
 const frame = element('main', 'console');
 document.title = ui.documentTitle;
 frame.dataset.scene = 'BOOT';
 const header = createHeader();
-const topology = createTopology();
+const topology = createTopology(random(0x544f504f));
 const intelPanel = createIntel();
 const intel = new Intel();
 const systems = createSystemStatus();
@@ -95,27 +98,27 @@ frame.append(
   element('div', 'flash'),
 );
 document.querySelector('#app')!.append(frame);
-const typing = new TypingBuffer(createRng());
+const typing = new TypingBuffer(random(0x54595045));
 const scenario = new Scenario();
-const assistant = new Assistant(
-  createRng(
-    Number(new URLSearchParams(location.search).get('seed') ?? 0x48415941),
-  ),
-);
+const assistant = new Assistant(random(0x48415941));
 let muted = true;
 let now = 0;
 let lastPaint = -Infinity;
 let lastLog = 0;
 let recovered = 0;
+let lastAutoType = 0;
+
+scenario.turned.subscribe(() => {
+  typing.complete(now);
+  backstage.root.hidden = help.root.hidden = true;
+  frame.classList.add('is-turn-start');
+});
 
 function performEnter() {
   const result = scenario.enter();
   if (result === 'ignored') return;
-  typing.complete(now);
-  if (result === 'turn') {
-    backstage.root.hidden = help.root.hidden = true;
-    frame.classList.add('is-turn-start');
-  } else banner.notice(ui.accepted, now);
+  if (result === 'accepted') typing.complete(now);
+  if (result === 'accepted') banner.notice(ui.accepted, now);
   lastPaint = -Infinity;
 }
 
@@ -136,6 +139,7 @@ function changeScene(scene: Scene) {
   backstage.root.hidden = help.root.hidden = true;
   lastLog = 0;
   recovered = 0;
+  complaintModel.update(scene, 0);
   if (scene === 'BOOT') {
     typing.reset();
     log.reset();
@@ -201,7 +205,8 @@ document.addEventListener('keydown', (event) => {
       muted = !muted;
       break;
     case 'auto':
-      banner.notice(ui.autoReserved, now, 4000);
+      scenario.toggleAutoplay();
+      banner.notice(scenario.autoplay ? ui.autoOn : ui.autoOff, now, 3000);
       break;
     case 'reset':
       scenario.reset();
@@ -230,6 +235,16 @@ startClock((delta, time) => {
   scenario.tick(delta);
   assistant.tick(delta, scenario.elapsed, scenario.turnElapsed);
   typing.tick(time);
+  if (
+    scenario.autoplay &&
+    scenario.scene === 'COUNTER' &&
+    !scenario.busy &&
+    time - lastAutoType >= 120
+  ) {
+    typeCommand();
+    lastAutoType = time;
+  }
+  complaintModel.update(scenario.scene, scenario.elapsed);
   if (scenario.turnElapsed === null || scenario.turnElapsed >= 300)
     frame.classList.remove('is-turn-start');
   const scene = scenario.scene;
@@ -255,11 +270,11 @@ startClock((delta, time) => {
   assistantPanel.render(assistant, time);
   if (time - lastPaint >= 80) {
     intelPanel.render(intel);
-    backstage.render(intel.reloads);
-    header.render(scene, elapsed, muted, new Date());
+    backstage.render(intel.reloads, complaintModel.handled);
+    header.render(scene, elapsed, muted, new Date(), scenario.autoplay);
     systems.render(scene, elapsed);
     terminal.render(typing, scene === 'COUNTER');
-    complaints.render(scene, elapsed);
+    complaints.render(scene, complaintModel);
     banner.render(scene, elapsed, scenario.turnElapsed, time);
     lastPaint = time;
   }

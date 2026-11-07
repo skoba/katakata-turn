@@ -1,4 +1,5 @@
 import {
+  reloadInterval,
   advisories,
   advisoryByScene,
   cloudRegions,
@@ -14,7 +15,7 @@ type CloudEntry = {
   updated: number;
 };
 export const FEED_LIMIT = 30;
-export const RELOAD_INTERVAL = 2000;
+export const RELOAD_INTERVAL = reloadInterval;
 const UPDATE_INTERVAL = 5000;
 
 export class Intel {
