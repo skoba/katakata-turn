@@ -45,3 +45,15 @@ Claude Code（プランナー / レビュアー / 検証者）が Codex CLI（�
 | 投入 | 開始 | 終了 | 所要 | 備考 |
 |---|---|---|---|---|
 | #1 初回 | 13:32 | 13:50 | 18 分 | tasks/phase2.md。5 コミット。レビュー ❌ 0 件、修正往復 0 回。自動再生 10 分ソーク合格 |
+
+## Phase 3（仕上げ）
+
+| 投入 | 開始 | 終了 | 所要 | 備考 |
+|---|---|---|---|---|
+| #1 初回 | 14:04 | 14:14 | 11 分 | tasks/phase3.md。4 コミット。レビュー ❌ 0 件、修正往復 0 回 |
+
+## 総括（2026-11-07）
+
+- Codex 投入 7 回（Phase 1 / 1b / 1c / 1c 修正 / 2 / 3 ＋ 起動失敗・中断 2 回）、実装時間の合計約 85 分。修正往復は Phase 1c の 1 回のみ。
+- Claude Code が自分で書いたコードはなし。環境整備（Node / Codex / Playwright 回避策）、SPEC 改訂、レビュー、GitHub 公開のみ。
+- 同梱 E2E をこの環境で動かすには `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=~/.cache/ms-playwright/chromium-1200/chrome-linux64/chrome PLAYWRIGHT_NO_SANDBOX=1 XDG_CONFIG_HOME=/tmp/katakata-browser-config FONTCONFIG_FILE=/tmp/katakata-fonts.conf LD_LIBRARY_PATH=~/.local/lib npm run e2e`。
