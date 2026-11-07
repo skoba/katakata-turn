@@ -55,6 +55,23 @@ let lastPaint = -Infinity;
 let lastLog = 0;
 let recovered = 0;
 
+function performEnter() {
+  const result = scenario.enter();
+  if (result === 'ignored') return;
+  typing.complete(now);
+  if (result === 'turn') {
+    backstage.root.hidden = help.root.hidden = true;
+    frame.classList.add('is-turn-start');
+  } else banner.notice(ui.accepted, now);
+  lastPaint = -Infinity;
+}
+
+function typeCommand() {
+  if (scenario.busy) return;
+  typing.press(now);
+  lastPaint = -Infinity;
+}
+
 function changeScene(scene: Scene) {
   frame.dataset.scene = scene;
   frame.dataset.tone = scenes[scene].tone;
@@ -72,6 +89,8 @@ changeScene('BOOT');
 startClock((delta, time) => {
   now = time;
   scenario.tick(delta);
+  typing.tick(time);
+  if (scenario.turnElapsed === null || scenario.turnElapsed >= 300) frame.classList.remove('is-turn-start');
   const scene = scenario.scene;
   const elapsed = scenario.elapsed;
   if (scene === 'BOOT') {
@@ -86,6 +105,7 @@ startClock((delta, time) => {
     const count = Math.min(systemNames.length, Math.floor(elapsed / 850));
     while (recovered < count) log.append(recoveryLog(systemNames[recovered++]), scene, new Date());
   }
+  map.render(scene, elapsed, scenario.turnElapsed, delta);
   if (time - lastPaint >= 80) {
     header.render(scene, elapsed, muted, new Date());
     systems.render(scene, elapsed);
