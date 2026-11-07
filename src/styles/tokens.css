@@ -1,0 +1,14 @@
+:root {
+  --bg: #05080f;
+  --panel: #0b1220;
+  --line: rgba(56, 242, 255, .25);
+  --fg: #9ff5e8;
+  --cyan: #38f2ff;
+  --green: #39ff88;
+  --amber: #ffb020;
+  --red: #ff3b5c;
+  --dim: #5c7080;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Noto Sans Mono CJK JP', monospace;
+  --sans: system-ui, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+  --accent: var(--cyan);
+}

@@ -1,0 +1,7 @@
+/* One full-frame flash per turn. No repeating flash animations. */
+.flash { position: absolute; z-index: 7; inset: 0; pointer-events: none; background: #d3ffff; opacity: 0; }
+.is-turn-start .flash { animation: turn-flash 300ms linear both; }
+.is-turn-start .dashboard { animation: turn-shake 300ms linear both; }
+@keyframes turn-flash { from { opacity: .6; } to { opacity: 0; } }
+@keyframes turn-shake { 0%, 100% { transform: translate(0); } 25% { transform: translate(.25rem, -.15rem); } 75% { transform: translate(-.25rem, .15rem); } }
+@media (prefers-reduced-motion: reduce) { .is-turn-start .dashboard { animation: none; } }
