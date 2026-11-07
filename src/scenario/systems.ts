@@ -16,3 +16,6 @@ export const statuses = {
   down: 'DOWN',
   recovering: 'RECOVERING',
 } as const;
+
+export const responseTime = (latency: number | null): string =>
+  latency === null ? '— ms' : `${latency} ms`;

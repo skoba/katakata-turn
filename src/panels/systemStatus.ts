@@ -1,6 +1,6 @@
 import { panel, element } from './dom';
 import { ui } from '../scenario/messages';
-import { systems, statuses } from '../scenario/systems';
+import { systems, statuses, responseTime } from '../scenario/systems';
 import type { Scene } from '../scenario/scenes';
 
 export function createSystemStatus() {
@@ -26,10 +26,17 @@ export function createSystemStatus() {
           state = elapsed >= (i + 1) * 850 ? 'nominal' : 'recovering';
         row.dataset.status = state;
         status.textContent = statuses[state];
-        rtt.textContent =
+        rtt.textContent = responseTime(
           state === 'down'
-            ? '— ms'
-            : `${state === 'degraded' ? (i === 0 ? Math.round(45 + Math.min(1, elapsed / 2500) * 335) : 185 + i * 7) : state === 'recovering' ? 120 : 12 + i * 3} ms`;
+            ? null
+            : state === 'degraded'
+              ? i === 0
+                ? Math.round(45 + Math.min(1, elapsed / 2500) * 335)
+                : 185 + i * 7
+              : state === 'recovering'
+                ? 120
+                : 12 + i * 3,
+        );
       });
     },
   };

@@ -24,6 +24,7 @@ import './styles/panels.css';
 import './styles/effects.css';
 
 const frame = element('main', 'console');
+document.title = ui.documentTitle;
 frame.dataset.scene = 'BOOT';
 const header = createHeader();
 const map = createThreatMap();
