@@ -9,6 +9,8 @@ export type Action =
   | 'help'
   | 'mute'
   | 'auto'
+  | 'report'
+  | 'autonomy'
   | 'reset'
   | 'fullscreen'
   | 'close'
@@ -42,6 +44,8 @@ export function mapKey(input: KeyInput, scene: Scene): Binding {
     );
   }
   if (input.isComposing) return { action: null, prevent: false };
+  if (key === 'a' && ctrl && input.shiftKey && !input.metaKey && !input.altKey)
+    return result('autonomy');
   if (!modified) {
     if (key === 'pagedown' || key === 'arrowright') return result('next');
     if (key === 'pageup' || key === 'arrowleft') return result('previous');
@@ -59,6 +63,7 @@ export function mapKey(input: KeyInput, scene: Scene): Binding {
       '?': 'help',
       m: 'mute',
       a: 'auto',
+      t: 'report',
       r: 'reset',
       f: 'fullscreen',
     };

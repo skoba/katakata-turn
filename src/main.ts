@@ -14,6 +14,8 @@ import { createComplaints } from './panels/complaints';
 import { createBackstage } from './panels/backstage';
 import { createBanner } from './panels/banner';
 import { createHelp } from './panels/help';
+import { createAssistant } from './panels/assistant';
+import { Assistant } from './engine/assistant';
 import { TypingBuffer } from './input/typing';
 import { createRng } from './engine/rng';
 import { mapKey } from './input/keymap';
@@ -36,18 +38,26 @@ const complaints = createComplaints();
 const backstage = createBackstage();
 const banner = createBanner();
 const help = createHelp();
+const assistantPanel = createAssistant();
 const dashboard = element('div', 'dashboard');
+const rightColumn = element('div', 'right-column');
 for (const [widget, className] of [
   [map, 'map-panel'],
   [systems, 'status-panel'],
   [log, 'log-panel'],
   [terminal, 'terminal-panel'],
   [hex, 'hex-panel'],
+  [assistantPanel, 'assistant-panel'],
   [complaints, 'complaint-panel'],
 ] as const) {
   widget.root.classList.add(className);
-  dashboard.append(widget.root);
+  if (
+    ['status-panel', 'assistant-panel', 'complaint-panel'].includes(className)
+  )
+    rightColumn.append(widget.root);
+  else dashboard.append(widget.root);
 }
+dashboard.append(rightColumn);
 const footer = element('footer', 'footer');
 const hints = element('div', 'footer-hints');
 hints.append(
@@ -82,6 +92,11 @@ frame.append(
 document.querySelector('#app')!.append(frame);
 const typing = new TypingBuffer(createRng());
 const scenario = new Scenario();
+const assistant = new Assistant(
+  createRng(
+    Number(new URLSearchParams(location.search).get('seed') ?? 0x48415941),
+  ),
+);
 let muted = true;
 let now = 0;
 let lastPaint = -Infinity;
@@ -102,10 +117,12 @@ function performEnter() {
 function typeCommand() {
   if (scenario.busy) return;
   typing.press(now);
+  assistant.commandInput();
   lastPaint = -Infinity;
 }
 
 function changeScene(scene: Scene) {
+  assistant.changeScene(scene);
   banner.clearNotice();
   frame.dataset.scene = scene;
   frame.dataset.tone = scenes[scene].tone;
@@ -159,6 +176,13 @@ document.addEventListener('keydown', (event) => {
     case 'backstage':
       backstage.root.hidden = !backstage.root.hidden;
       help.root.hidden = true;
+      if (!backstage.root.hidden) assistant.showBackstage();
+      break;
+    case 'report':
+      assistant.report();
+      break;
+    case 'autonomy':
+      assistant.toggleAutonomy();
       break;
     case 'help':
       help.root.hidden = !help.root.hidden;
@@ -197,6 +221,7 @@ if (!new URLSearchParams(location.search).has('nobeforeunload')) {
 startClock((delta, time) => {
   now = time;
   scenario.tick(delta);
+  assistant.tick(delta, scenario.elapsed, scenario.turnElapsed);
   typing.tick(time);
   if (scenario.turnElapsed === null || scenario.turnElapsed >= 300)
     frame.classList.remove('is-turn-start');
@@ -220,6 +245,7 @@ startClock((delta, time) => {
       log.append(recoveryLog(systemNames[recovered++]), scene, new Date());
   }
   map.render(scene, elapsed, scenario.turnElapsed, delta);
+  assistantPanel.render(assistant, time);
   if (time - lastPaint >= 80) {
     header.render(scene, elapsed, muted, new Date());
     systems.render(scene, elapsed);

@@ -1,6 +1,6 @@
 export const help = {
   title: 'KEYBOARD / 操作ガイド',
-  rule: 'COUNTER 以外は単独キーで操作。COUNTER 中は印字キーをすべて入力に使用し、機能は Ctrl+キー（リセット・全画面は Ctrl+Shift+R / F）。',
+  rule: 'COUNTER 以外は単独キーで操作。COUNTER 中は印字キーをすべて入力に使用し、機能は Ctrl+キー（リセット・全画面は Ctrl+Shift+R / F）。AUTONOMY は全シーンで Ctrl+Shift+A。',
   rows: [
     ['PageDown / →', '次のシーン'],
     ['PageUp / ←', '前のシーン'],
@@ -11,6 +11,8 @@ export const help = {
     ['H / ?', 'ヘルプ'],
     ['M', 'ミュート表示切替（Phase 1 は音声なし）'],
     ['A', '自動再生の保留案内（Phase 2）'],
+    ['T / COUNTER は Ctrl+T', 'ハヤオが現在シーンを 1 文で状況報告'],
+    ['Ctrl+Shift+A', 'AUTONOMY ON / OFF（OFF は沈黙）'],
     ['R', 'BOOT へリセット'],
     ['F', '全画面表示'],
     ['Esc', 'オーバーレイを閉じる'],

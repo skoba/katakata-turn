@@ -3,6 +3,39 @@ import { mapKey } from '../src/input/keymap';
 import { sceneOrder } from '../src/scenario/scenes';
 
 describe('clicker and keyboard mapping', () => {
+  it('maps assistant shortcuts without stealing COUNTER typing or automatic-play keys', () => {
+    for (const scene of sceneOrder) {
+      expect(mapKey({ key: 't' }, scene).action).toBe(
+        scene === 'COUNTER' ? 'type' : 'report',
+      );
+      expect(mapKey({ key: 'T', ctrlKey: true }, scene)).toEqual(
+        scene === 'COUNTER'
+          ? { action: 'report', prevent: true }
+          : { action: null, prevent: false },
+      );
+      expect(
+        mapKey({ key: 'A', ctrlKey: true, shiftKey: true }, scene),
+      ).toEqual({ action: 'autonomy', prevent: true });
+      expect(mapKey({ key: 'a' }, scene).action).toBe(
+        scene === 'COUNTER' ? 'type' : 'auto',
+      );
+      expect(mapKey({ key: 'a', ctrlKey: true }, 'COUNTER').action).toBe(
+        'auto',
+      );
+    }
+    expect(
+      mapKey(
+        { key: 'A', ctrlKey: true, shiftKey: true, isComposing: true },
+        'COUNTER',
+      ).action,
+    ).toBeNull();
+    expect(
+      mapKey(
+        { key: 'A', ctrlKey: true, shiftKey: true, altKey: true },
+        'NORMAL',
+      ).action,
+    ).toBeNull();
+  });
   it('maps clicker arrows and inhibits every F5 / reload variant', () => {
     for (const scene of sceneOrder) {
       expect(mapKey({ key: 'PageDown' }, scene).action).toBe('next');
