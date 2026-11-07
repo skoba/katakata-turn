@@ -86,6 +86,7 @@ CSS Grid で以下を配置する（番号は優先度。狭い画面では 6・
    文言は `src/scenario/backstage.ts` に置き、簡単に差し替えられるようにする。
 9. **BANNER**（上中央オーバーレイ）: `WARNING` / `CRITICAL` / `COUNTERMEASURE DEPLOYED` / `ALL SYSTEMS NOMINAL` などの大型表示。
 10. **HELP**（H or ? でトグル）: キー操作一覧。
+11. **AI ASSISTANT**（右中、SYSTEM STATUS と COMPLAINT QUEUE の間）: 自律型 AI アシスタント「ハヤオ」の発話パネル（§4.6）。
 
 ### 4.3 シーン（状態機械）
 
@@ -143,6 +144,44 @@ BOOT → NORMAL → DETECT → INCIDENT → COUNTER → RECOVERY → END
 
 **文字キーと機能キーの衝突ルール**（単一ルールで解決し、ヘルプにそう書く）: COUNTER 以外のシーンでは単独キーが機能キー、COUNTER 中は印字キーはすべて TERMINAL 入力となり、機能は Ctrl+ 修飾で呼ぶ（Ctrl+B, Ctrl+M, Ctrl+1… ただし Ctrl+R と Ctrl+F はブラウザ機能と衝突するため COUNTER 中は Ctrl+Shift+R / Ctrl+Shift+F）。`beforeunload` で離脱確認を出す（誤リロード防止、`?nobeforeunload` クエリで無効化可）。
 
+### 4.6 自律型 AI アシスタント「ハヤオ」
+
+**位置づけ**: ドラマで司令室に必ずいる「AI が喋る」演出。画面右側、SYSTEM STATUS と COMPLAINT QUEUE の間に
+AI ASSISTANT パネルを置く（720p では COMPLAINT QUEUE と縦に分け合う）。
+
+**表示**
+- ヘッダ `AI ASSISTANT // HAYAO  v0.1  [AUTONOMOUS MODE]`、右に `AUTONOMY: ON/OFF`。
+- 吹き出し風の発話ログ（最新 4 件）。1 文字ずつタイプ表示（30〜40 字/秒）、文末にカーソル点滅（2 Hz 以下）。
+- 発話の下に「思考中」インジケータ（`analyzing ░░▒▒▓▓`）と `confidence: 0.87` のような数値。数値は演出用の乱数。
+- アイコンは幾何学図形（同心円＋回転する弧）を Canvas で描く。既存キャラクターやロゴに似せない。
+
+**ふるまい（シーン連動、文言は src/scenario/assistant.ts に集約）**
+- NORMAL: 平常報告。「異常なし。定期バックアップは 03:00 に完了しています。」
+- DETECT: 先に気づく。「クラウド接続の RTT が 8 倍に増加。電子カルテ応答遅延を検知しました。」
+- INCIDENT: 対処案を列挙するが、自律では実行しない。
+  「推奨: セグメント隔離・DR サイト切替。実行には管理者の承認が必要です（Enter）。」
+  苦情が増えると「院長からの内線を検知。優先度を CRITICAL に引き上げます。」
+- COUNTER: 演者のキー乱打に反応。「コマンドを受理… 構文を補完しています。」
+  Enter の「ターン！」演出中は進捗バーに合わせて実況。「セグメント隔離 完了」「DR サイトへ切替 完了」
+- RECOVERY: 「全システム正常。インシデントレポートを自動生成しました。」
+- END（BACKSTAGE 表示時）: オチ。
+  「補足: 本インシデントの実際の復旧作業はすべてクラウド側で行われました。私が行ったのは状況の読み上げです。」
+  この一文は `assistant.ts` の `backstageConfession` として差し替え可能にする。
+
+**キー操作**
+- `T`（COUNTER 中は `Ctrl+T`）: ハヤオに「状況報告」を喋らせる（現在シーンの要約を 1 文）。トークの間が空いたときの埋め用。
+- `Ctrl+Shift+A`: AUTONOMY を OFF にすると、ハヤオの発話が「…」と沈黙し、ステータスが `AWAITING HUMAN` になる（小ネタ）。
+
+**制約**
+- 発話は全部あらかじめ用意した文言。LLM・外部通信は使わない（§3 を維持）。
+- 文言は §6 の架空データルールに従う。実在の AI 製品名・会社名は出さない。
+- 発話ログは最大 20 件で破棄。
+
+**受け入れ基準の追加**
+- [ ] 各シーンで少なくとも 1 発話が自動で出る。Enter 演出中の実況が進捗バーと同期している
+- [ ] `T` で任意のタイミングに発話できる。AUTONOMY OFF で沈黙する
+- [ ] 発話文言が tests/fictional-data.test.ts の検査対象に含まれる
+
 ## 5. アーキテクチャ
 
 ```
@@ -158,8 +197,8 @@ katakata-turn/
     input/keymap.ts              # キー → アクション
     input/typing.ts              # hackertyper バッファ（純粋ロジック）
     audio/sfx.ts                 # Web Audio 効果音（key click / beep / turn / chime）
-    panels/{header,threatMap,systemStatus,eventLog,terminal,hexdump,complaints,backstage,banner,help}.ts
-    scenario/{scenes,systems,messages,commands,complaints,backstage}.ts   # 文言・データ（ここだけ触れば演出内容を変えられる）
+    panels/{header,threatMap,systemStatus,eventLog,terminal,hexdump,complaints,backstage,banner,help,assistant}.ts
+    scenario/{scenes,systems,messages,commands,complaints,backstage,assistant}.ts   # 文言・データ（ここだけ触れば演出内容を変えられる）
     assets/world.ts              # 地図パスデータ
     styles/{tokens,layout,effects,panels}.css
   tests/                         # vitest
