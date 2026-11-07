@@ -129,6 +129,9 @@ h1 {
   overflow-y: auto;
   scrollbar-width: none;
 }
+.event-list.log-overflow {
+  mask-image: linear-gradient(to bottom, transparent, #000 3rem);
+}
 .log-row {
   display: grid;
   grid-template-columns: 7.1rem 3rem 1fr;

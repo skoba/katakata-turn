@@ -6,6 +6,11 @@ export function createEventLog() {
   const { root, body } = panel(ui.panel.log, ui.subtitles.log);
   body.classList.add('event-list');
   let sequence = 0;
+  function scrollToLatest() {
+    body.scrollTop = body.scrollHeight;
+    body.classList.toggle('log-overflow', body.scrollTop > 0);
+  }
+  new ResizeObserver(scrollToLatest).observe(body);
   function append(message: string, scene: Scene, date: Date) {
     const line = element('div', 'log-row');
     line.dataset.tone = scenes[scene].tone;
@@ -23,7 +28,7 @@ export function createEventLog() {
     sequence++;
     body.append(line);
     while (body.childElementCount > 200) body.firstElementChild!.remove();
-    body.scrollTop = body.scrollHeight;
+    scrollToLatest();
   }
   return {
     root,
@@ -35,6 +40,7 @@ export function createEventLog() {
     reset() {
       body.replaceChildren();
       sequence = 0;
+      scrollToLatest();
     },
   };
 }
